@@ -65,6 +65,20 @@ static void MX_I2C1_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	HAL_StatusTypeDef ret1;
+	HAL_StatusTypeDef ret2;
+	HAL_StatusTypeDef ret3;
+	HAL_StatusTypeDef ret4;
+	uint8_t end = 0x64;
+	uint32_t saida;
+	uint32_t saida1;
+	uint32_t saida2;
+	uint32_t saida3;
+	uint32_t saida4;
+	uint8_t saida5;
+
+	uint8_t use[12];
+	uint8_t buf[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   /* USER CODE END 1 */
 
@@ -95,11 +109,17 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  ret = HAL_I2C_Master_Transmit(&hi2c1, 0x00, buf, 0, HAL_MAX_DELAY);
-	  HAL_Delay(3);
-	  ret1 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, buf1, 1, HAL_MAX_DELAY);
-	  HAL_Delay(500);
+	  ret1 = HAL_I2C_Master_Transmit(&hi2c1, 0xC8, use, 1, HAL_MAX_DELAY);
+	  //HAL_I2C_Master_Transmit(hi2c, DevAddress, pData, Size, Timeout);
 
+	  // wake-up
+	  uint8_t data = 0;
+	  ret2 = HAL_I2C_Master_Receive(&hi2c1, 0xFE, &data, sizeof(data), 1000); // Ver onde fala do 0XFE
+	  HAL_Delay(10); // 2.5 ms para acordar; 45 ms para entrar em sleep
+
+	  // first read: 0 byte read - should receive an ACK
+	  ret3 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, &data, 1, 1000);
+	  HAL_Delay(10);
 
     /* USER CODE END WHILE */
 
@@ -163,7 +183,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.ClockSpeed = 400000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -190,6 +210,7 @@ static void MX_GPIO_Init(void)
 {
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
