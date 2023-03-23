@@ -76,9 +76,10 @@ int main(void)
 	uint32_t saida3;
 	uint32_t saida4;
 	uint8_t saida5;
-
-	uint8_t use[12];
-	uint8_t buf[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	//uint8_t reply[20];
+	//uint8_t reply1[20];
+	uint8_t buf[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+	uint8_t buf1[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 
   /* USER CODE END 1 */
 
@@ -109,18 +110,45 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  ret1 = HAL_I2C_Master_Transmit(&hi2c1, 0xC8, use, 1, HAL_MAX_DELAY);
-	  //HAL_I2C_Master_Transmit(hi2c, DevAddress, pData, Size, Timeout);
+	    // wake-up
+	    uint8_t data = 0;
+	    ret1 = HAL_I2C_Master_Receive(&hi2c1, 0xFE, &data, sizeof(data), 1000); // Ver onde fala do 0XFE
+	    HAL_Delay(10); // 2.5 ms para acordar; 45 ms para entrar em sleep
 
-	  // wake-up
-	  uint8_t data = 0;
-	  ret2 = HAL_I2C_Master_Receive(&hi2c1, 0xFE, &data, sizeof(data), 1000); // Ver onde fala do 0XFE
-	  HAL_Delay(10); // 2.5 ms para acordar; 45 ms para entrar em sleep
+	    // first read: 0 byte read - should receive an ACK
+	    ret2 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, &data, 1, 1000);
 
-	  // first read: 0 byte read - should receive an ACK
-	  ret3 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, &data, 1, 1000);
-	  HAL_Delay(10);
+	    // command packet: 8.5.1
+	    // 6.2.1: Word Address Value: COMMAND == 0x03
+	    // read command: 8.5.15
+	    // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
+	    // read configuration zone: {  0x03,    0x07, 0x02, 0x00,      0x00,      0x00,      0xB2,    0x7E}
+	    // CRC-16 Polinomial: 0x8005: includes COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB (does not include COMMAND)
+	    // CRC https://www.scadacore.com/tools/programming-calculators/online-checksum-calculator/
+	    // Zone encoding table 8-5
 
+	    //CRC
+	   // uint8_t readCommand[10] = {0x03, 0x07, 0x02, 0x00, 0x00, 0x00, 0x1E, 0x2D}; // inverter os últimos 2 bytes de CRC?
+	    uint8_t readCommand[10] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD};
+	/*
+	    uint8_t reply[20];
+	    //ret3 = HAL_I2C_Master_Transmit(&hi2c1, 0xC8, &data, sizeof(data), 1000);
+	    ret3 = HAL_I2C_Master_Transmit(&hi2c1, 0xC8, readCommand, 8, 1000);
+	   // HAL_Delay(5);
+	    ret4 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, reply, 20, 1000);
+	    HAL_Delay(10);
+	*/
+	    uint8_t reply[4];
+	    HAL_Delay(5);
+	    ret3 = HAL_I2C_Master_Transmit(&hi2c1, 0xC8, &data, sizeof(data), 1000); // Tem que enviar 1 byte
+	    HAL_Delay(5);
+	    saida1 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, reply, 4, 1000); // tem que receber 0x04 0x11 0x33 0x43
+	    HAL_Delay(5);
+	    uint8_t reply1[32];
+	    ret4 = HAL_I2C_Master_Transmit(&hi2c1, 0xC8, readCommand, 8, 1000); // enviar o comando de leitura
+	    HAL_Delay(5);
+	    saida2 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, reply1, 16, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
+	    HAL_Delay(5);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
