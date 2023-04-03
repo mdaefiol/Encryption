@@ -40,6 +40,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c2;
 
 /* USER CODE BEGIN PV */
 
@@ -49,12 +50,37 @@ I2C_HandleTypeDef hi2c1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+#define SHA204_WRITE 0x01
+#define SHA204_READ 0x03
+
+
+void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) {
+	uint8_t counter;
+	uint16_t crc_register = 0;
+	uint16_t polynom = 0x8005;
+	uint8_t shift_register;
+	uint8_t data_bit, crc_bit;
+
+	for (counter = 0; counter < length; counter++) {
+	  for (shift_register = 0x01; shift_register > 0x00; shift_register <<= 1) {
+		 data_bit = (data[counter] & shift_register) ? 1 : 0;
+		 crc_bit = crc_register >> 15;
+		 crc_register <<= 1;
+		 if (data_bit != crc_bit)
+			crc_register ^= polynom;
+	  }
+	}
+	crc[0] = (uint8_t) (crc_register & 0x00FF);
+	crc[1] = (uint8_t) (crc_register >> 8);
+}
 
 /* USER CODE END 0 */
 
@@ -102,6 +128,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -112,11 +139,11 @@ int main(void)
   {
 	    // wake-up
 	    uint8_t data = 0;
-	    ret1 = HAL_I2C_Master_Receive(&hi2c1, 0xFE, &data, sizeof(data), 1000); // Ver onde fala do 0XFE
+	    ret1 = HAL_I2C_Master_Receive(&hi2c2, 0xF7, &data, sizeof(data), 1000); // Ver onde fala do 0XFE
 	    HAL_Delay(10); // 2.5 ms para acordar; 45 ms para entrar em sleep
 
 	    // first read: 0 byte read - should receive an ACK
-	    ret2 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, &data, 1, 1000);
+	    ret2 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, &data, 1, 1000);
 
 	    // command packet: 8.5.1
 	    // 6.2.1: Word Address Value: COMMAND == 0x03
@@ -128,26 +155,19 @@ int main(void)
 	    // Zone encoding table 8-5
 
 	    //CRC
-	   // uint8_t readCommand[10] = {0x03, 0x07, 0x02, 0x00, 0x00, 0x00, 0x1E, 0x2D}; // inverter os últimos 2 bytes de CRC?
+	    // SHA204_READ = 0x03
 	    uint8_t readCommand[10] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD};
-	/*
-	    uint8_t reply[20];
-	    //ret3 = HAL_I2C_Master_Transmit(&hi2c1, 0xC8, &data, sizeof(data), 1000);
-	    ret3 = HAL_I2C_Master_Transmit(&hi2c1, 0xC8, readCommand, 8, 1000);
-	   // HAL_Delay(5);
-	    ret4 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, reply, 20, 1000);
-	    HAL_Delay(10);
-	*/
+
 	    uint8_t reply[4];
 	    HAL_Delay(5);
-	    ret3 = HAL_I2C_Master_Transmit(&hi2c1, 0xC8, &data, sizeof(data), 1000); // Tem que enviar 1 byte
+	    ret3 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, &data, sizeof(data), 1000); // Tem que enviar 1 byte
 	    HAL_Delay(5);
-	    saida1 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, reply, 4, 1000); // tem que receber 0x04 0x11 0x33 0x43
+	    saida1 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply, 4, 1000); // tem que receber 0x04 0x11 0x33 0x43
 	    HAL_Delay(5);
 	    uint8_t reply1[32];
-	    ret4 = HAL_I2C_Master_Transmit(&hi2c1, 0xC8, readCommand, 8, 1000); // enviar o comando de leitura
+	    ret4 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readCommand, 8, 1000); // enviar o comando de leitura
 	    HAL_Delay(5);
-	    saida2 = HAL_I2C_Master_Receive(&hi2c1, 0xC8, reply1, 16, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
+	    saida2 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply1, 32, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
 	    HAL_Delay(5);
     /* USER CODE END WHILE */
 
@@ -230,6 +250,40 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief I2C2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C2_Init(void)
+{
+
+  /* USER CODE BEGIN I2C2_Init 0 */
+
+  /* USER CODE END I2C2_Init 0 */
+
+  /* USER CODE BEGIN I2C2_Init 1 */
+
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C2_Init 2 */
+
+  /* USER CODE END I2C2_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -240,8 +294,8 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
 
 }
 
