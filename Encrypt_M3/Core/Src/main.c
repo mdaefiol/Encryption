@@ -100,12 +100,6 @@ int main(void)
 	uint32_t saida1;
 	uint32_t saida2;
 	uint32_t saida3;
-	uint32_t saida4;
-	uint8_t saida5;
-	//uint8_t reply[20];
-	//uint8_t reply1[20];
-	uint8_t buf[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
-	uint8_t buf1[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 
   /* USER CODE END 1 */
 
@@ -137,13 +131,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	    // wake-up
-	    uint8_t data = 0;
-	    ret1 = HAL_I2C_Master_Receive(&hi2c2, 0xF7, &data, sizeof(data), 1000); // Ver onde fala do 0XFE
-	    HAL_Delay(10); // 2.5 ms para acordar; 45 ms para entrar em sleep
-
-	    // first read: 0 byte read - should receive an ACK
-	    ret2 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, &data, 1, 1000);
 
 	    // command packet: 8.5.1
 	    // 6.2.1: Word Address Value: COMMAND == 0x03
@@ -154,7 +141,14 @@ int main(void)
 	    // CRC https://www.scadacore.com/tools/programming-calculators/online-checksum-calculator/
 	    // Zone encoding table 8-5
 
-	    //CRC
+	    // wake-up
+	    uint8_t data = 0;
+	    ret1 = HAL_I2C_Master_Receive(&hi2c2, 0xF7, &data, sizeof(data), 1000); // Ver onde fala do 0XFE
+	    HAL_Delay(10); // 2.5 ms para acordar; 45 ms para entrar em sleep
+	    // first read: 0 byte read - should receive an ACK
+	    ret2 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, &data, 1, 1000);
+
+	    // LEITURA SERIAL NUMBER
 	    // SHA204_READ = 0x03
 	    uint8_t readCommand[10] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD};
 
@@ -169,6 +163,16 @@ int main(void)
 	    HAL_Delay(5);
 	    saida2 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply1, 32, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
 	    HAL_Delay(5);
+
+	    HAL_I2C_Master_Transmit(&hi2c2, 0xC8, &data, sizeof(data), 1000); // Tem que enviar 1 byte
+	    HAL_Delay(5);
+	    uint8_t MACCommand[39] = {0x08, 0x80, 0x00, 0x00, 0x00, 0x11, 0x11, 0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x40,0xDB};
+	    HAL_I2C_Master_Transmit(&hi2c2, 0xC8, MACCommand, 39, 1000); // enviar o comando MAC
+	    HAL_Delay(5);
+	    uint8_t reply2[40];
+	    saida3 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply2, 39, 1000); //
+	   	HAL_Delay(5);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
