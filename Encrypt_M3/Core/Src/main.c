@@ -131,7 +131,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
 	    // command packet: 8.5.1
 	    // 6.2.1: Word Address Value: COMMAND == 0x03
 	    // read command: 8.5.15
@@ -163,16 +162,14 @@ int main(void)
 	    HAL_Delay(5);
 	    saida2 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply1, 32, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
 	    HAL_Delay(5);
+	    
+	    
+	    
+	   
+	    HAL_Delay(100);
 
-	    HAL_I2C_Master_Transmit(&hi2c2, 0xC8, &data, sizeof(data), 1000); // Tem que enviar 1 byte
-	    HAL_Delay(5);
-	    uint8_t MACCommand[39] = {0x08, 0x80, 0x00, 0x00, 0x00, 0x11, 0x11, 0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x40,0xDB};
-	    HAL_I2C_Master_Transmit(&hi2c2, 0xC8, MACCommand, 39, 1000); // enviar o comando MAC
-	    HAL_Delay(5);
-	    uint8_t reply2[40];
-	    saida3 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply2, 39, 1000); //
-	   	HAL_Delay(5);
-
+	    
+	    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -1,5 +1,5 @@
 ../Core/Src/main.c:65:6:sha204c_calculate_crc	40	static
-../Core/Src/main.c:91:5:main	176	static
+../Core/Src/main.c:91:5:main	80	static
 ../Core/Src/main.c:187:6:SystemClock_Config	72	static
 ../Core/Src/main.c:227:13:MX_I2C1_Init	8	static
 ../Core/Src/main.c:261:13:MX_I2C2_Init	8	static
