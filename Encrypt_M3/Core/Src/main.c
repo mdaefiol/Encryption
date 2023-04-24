@@ -58,10 +58,42 @@ static void MX_I2C2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-#define SHA204_WRITE 0x01
-#define SHA204_READ 0x03
+#define I2C_ADDRESS 			0xC8 	// Endereço I2C do ATSHA204A
+#define SERIAL_NUMBER_SIZE 		9 		// Tamanho do número de série do ATSHA204A
+#define KEY_SIZE 				32 		// Tamanho da chave criptográfica gerada
+#define ZONE_ACCESS_CONFIG_SIZE 4 		// Tamanho da zona de configuração
+#define PUBLIC_KEY_SIZE 		64 		// Tamanho da chave pública gerada
 
 
+// Definir os códigos de comando do ATSHA204A
+#define COMMAND_CHECKMAC        0x28
+#define COMMAND_DERIVE_KEY      0x1C
+#define COMMAND_INFO            0x30
+#define COMMAND_GENKEY          0x40
+#define COMMAND_GENDIG          0x15
+#define COMMAND_LOCK            0x17
+#define COMMAND_MAC             0x08
+#define COMMAND_NONCE           0x16
+#define COMMAND_PAUSE           0x01
+#define COMMAND_RANDOM          0x1B
+#define COMMAND_READ            0x02
+#define COMMAND_SHA             0x47
+#define COMMAND_UPDATE_EXTRA    0x20
+#define COMMAND_WRITE           0x12
+
+// Definir os códigos de zonas do ATSHA204A
+#define ZONE_CONFIG 0x00 // Zona de configuração
+#define ZONE_DATA 0x02 // Zona de dados
+
+// Definir as configurações de slot do ATSHA204A
+#define ATSHA204A_SLOT_CONFIG_SECRET      	0x03 // Configuração de slot para chave secreta
+#define ATSHA204A_SLOT_CONFIG_WRITE_ONLY  	0x06 // Configuração de slot para escrita somente
+
+// Definir as configurações de bloqueio de zona do ATSHA204A
+#define ATSHA204A_ZONE_LOCK_CONFIG_LOCKED 	0x55 // Zona bloqueada
+#define ATSHA204A_ZONE_LOCK_CONFIG_UNLOCKED 0x00 // Zona desbloqueada
+
+/*
 void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) {
 	uint8_t counter;
 	uint16_t crc_register = 0;
@@ -81,7 +113,7 @@ void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) {
 	crc[0] = (uint8_t) (crc_register & 0x00FF);
 	crc[1] = (uint8_t) (crc_register >> 8);
 }
-
+*/
 /* USER CODE END 0 */
 
 /**
@@ -95,12 +127,14 @@ int main(void)
 	HAL_StatusTypeDef ret2;
 	HAL_StatusTypeDef ret3;
 	HAL_StatusTypeDef ret4;
+	HAL_StatusTypeDef ret5;
+	HAL_StatusTypeDef ret6;
 	uint8_t end = 0x64;
 	uint32_t saida;
 	uint32_t saida1;
 	uint32_t saida2;
 	uint32_t saida3;
-
+	uint32_t saida4;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -150,26 +184,49 @@ int main(void)
 	    // LEITURA SERIAL NUMBER
 	    // SHA204_READ = 0x03
 	    uint8_t readCommand[10] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD};
-
 	    uint8_t reply[4];
+
 	    HAL_Delay(5);
 	    ret3 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, &data, sizeof(data), 1000); // Tem que enviar 1 byte
 	    HAL_Delay(5);
 	    saida1 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply, 4, 1000); // tem que receber 0x04 0x11 0x33 0x43
 	    HAL_Delay(5);
 	    uint8_t reply1[32];
-	    ret4 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readCommand, 8, 1000); // enviar o comando de leitura
+	   // ret4 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readCommand, 8, 1000); // enviar o comando de leitura
+	    HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readCommand, 8, 1000); // enviar o comando de leitura
 	    HAL_Delay(5);
 	    saida2 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply1, 32, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
 	    HAL_Delay(5);
-	    
-	    
-	    
-	   
-	    HAL_Delay(100);
 
-	    
-	    
+
+	    uint8_t snCmd[4] = {0x02, 0x00, 0x00, 0x00}; // Comando para leitura do serial number
+	    uint8_t snData[9];
+	    HAL_I2C_Master_Transmit(&hi2c1, 0xC8, snCmd, 4, 1000);
+	    HAL_I2C_Master_Receive(&hi2c1, 0xC8, snData, 9, 1000);
+	    // snData = 0x00, 0xC8, 0x00, 0x55, 0x00
+	    HAL_Delay(100);
+/*
+	    //COMANDO DE BLOQUEIO DE CONFIGURAÇÃO
+	    uint8_t blockCommand[10] = {0x03, 0x80, 0x01, 0x23, 0x04, 0x00, 0x00, 0x00};
+	    HAL_Delay(5);
+	  //  ret5 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, &data, sizeof(data), 1000); // Tem que enviar 1 byte
+	  //  HAL_Delay(5);
+	  //  saida3 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply, 4, 1000); // tem que receber 0x04 0x11 0x33 0x43
+	  //  HAL_Delay(5);
+	    uint8_t reply_block[32];
+	    ret5 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, blockCommand, 8, 1000); // enviar o comando de bloqueio de configuração
+	    HAL_Delay(5);
+	    saida3 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply_block, 32, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
+	    HAL_Delay(5);
+
+	    uint8_t writedata[8] = {0x03, 0x00, 0x00, 0x55, 0x55, 0x55, 0x55, 0x55};
+	    HAL_I2C_Master_Transmit(&hi2c2, 0xC8, blockCommand, 8, 1000); // enviar o comando de bloqueio de configuração
+	   	HAL_Delay(5);
+	    HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply_block, 32, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
+	   	HAL_Delay(5);
+
+	    HAL_Delay(100);
+*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
