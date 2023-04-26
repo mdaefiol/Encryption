@@ -1,0 +1,3 @@
+../Core/Src/ATSHA204.c:29:6:WakeUp	24	static
+../Core/Src/ATSHA204.c:42:6:SerialRead	40	static
+../Core/Src/ATSHA204.c:62:6:CommandSerial	32	static

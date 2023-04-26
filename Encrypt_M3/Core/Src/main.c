@@ -57,63 +57,9 @@ static void MX_I2C2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-#define I2C_ADDRESS 			0xC8 	// Endereço I2C do ATSHA204A
-#define SERIAL_NUMBER_SIZE 		9 		// Tamanho do número de série do ATSHA204A
-#define KEY_SIZE 				32 		// Tamanho da chave criptográfica gerada
-#define ZONE_ACCESS_CONFIG_SIZE 4 		// Tamanho da zona de configuração
-#define PUBLIC_KEY_SIZE 		64 		// Tamanho da chave pública gerada
-
-
-// Definir os códigos de comando do ATSHA204A
-#define COMMAND_CHECKMAC        0x28
-#define COMMAND_DERIVE_KEY      0x1C
-#define COMMAND_INFO            0x30
-#define COMMAND_GENKEY          0x40
-#define COMMAND_GENDIG          0x15
-#define COMMAND_LOCK            0x17
-#define COMMAND_MAC             0x08
-#define COMMAND_NONCE           0x16
-#define COMMAND_PAUSE           0x01
-#define COMMAND_RANDOM          0x1B
-#define COMMAND_READ            0x02
-#define COMMAND_SHA             0x47
-#define COMMAND_UPDATE_EXTRA    0x20
-#define COMMAND_WRITE           0x12
-
-// Definir os códigos de zonas do ATSHA204A
-#define ZONE_CONFIG 0x00 // Zona de configuração
-#define ZONE_DATA 0x02 // Zona de dados
-
-// Definir as configurações de slot do ATSHA204A
-#define ATSHA204A_SLOT_CONFIG_SECRET      	0x03 // Configuração de slot para chave secreta
-#define ATSHA204A_SLOT_CONFIG_WRITE_ONLY  	0x06 // Configuração de slot para escrita somente
-
-// Definir as configurações de bloqueio de zona do ATSHA204A
-#define ATSHA204A_ZONE_LOCK_CONFIG_LOCKED 	0x55 // Zona bloqueada
-#define ATSHA204A_ZONE_LOCK_CONFIG_UNLOCKED 0x00 // Zona desbloqueada
-
-/*
-void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) {
-	uint8_t counter;
-	uint16_t crc_register = 0;
-	uint16_t polynom = 0x8005;
-	uint8_t shift_register;
-	uint8_t data_bit, crc_bit;
-
-	for (counter = 0; counter < length; counter++) {
-	  for (shift_register = 0x01; shift_register > 0x00; shift_register <<= 1) {
-		 data_bit = (data[counter] & shift_register) ? 1 : 0;
-		 crc_bit = crc_register >> 15;
-		 crc_register <<= 1;
-		 if (data_bit != crc_bit)
-			crc_register ^= polynom;
-	  }
-	}
-	crc[0] = (uint8_t) (crc_register & 0x00FF);
-	crc[1] = (uint8_t) (crc_register >> 8);
-}
-*/
+uint8_t data[9];
+uint8_t receive1[4];
+uint8_t receive2[32];
 /* USER CODE END 0 */
 
 /**
@@ -123,18 +69,7 @@ void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	HAL_StatusTypeDef ret1;
-	HAL_StatusTypeDef ret2;
-	HAL_StatusTypeDef ret3;
-	HAL_StatusTypeDef ret4;
-	HAL_StatusTypeDef ret5;
-	HAL_StatusTypeDef ret6;
-	uint8_t end = 0x64;
-	uint32_t saida;
-	uint32_t saida1;
-	uint32_t saida2;
-	uint32_t saida3;
-	uint32_t saida4;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -158,53 +93,33 @@ int main(void)
   MX_I2C1_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-
+  //uint8_t tx_data[8] = {0x03, 0x07, 0x1B, 0x00, 0x00, 0x00, 0xB2, 0x7E};
+  uint8_t calcule_SHA[8] = {0x03, 0x07, 0x47, 0x00, 0x00, 0x00, 0xB2, 0x7E};
+  uint8_t tx_data[8] = {0x1B, 0x00, 0x00, 0x00};
+  uint8_t tx2_data[8] = {0x03, 0x07, 0x02, 0x00, 0x00, 0x00, 0xB2, 0x7E};
+  uint8_t rx_data[32];
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	    // command packet: 8.5.1
-	    // 6.2.1: Word Address Value: COMMAND == 0x03
-	    // read command: 8.5.15
-	    // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
-	    // read configuration zone: {  0x03,    0x07, 0x02, 0x00,      0x00,      0x00,      0xB2,    0x7E}
-	    // CRC-16 Polinomial: 0x8005: includes COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB (does not include COMMAND)
-	    // CRC https://www.scadacore.com/tools/programming-calculators/online-checksum-calculator/
-	    // Zone encoding table 8-5
+	  // WakeUp();
+	  // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
+	  // read configuration zone: { 0x03, 0x07, 0x02, 0x00, 0x00, 0x00, 0xB2, 0x7E}
 
-	    // wake-up
-	    uint8_t data = 0;
-	    ret1 = HAL_I2C_Master_Receive(&hi2c2, 0xF7, &data, sizeof(data), 1000); // Ver onde fala do 0XFE
-	    HAL_Delay(10); // 2.5 ms para acordar; 45 ms para entrar em sleep
-	    // first read: 0 byte read - should receive an ACK
-	    ret2 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, &data, 1, 1000);
+	  SerialRead(receive1, receive2);
+	  HAL_Delay(5);
+	  /* Configura o buffer de transmissão */
 
-	    // LEITURA SERIAL NUMBER
-	    // SHA204_READ = 0x03
-	    uint8_t readCommand[10] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD};
-	    uint8_t reply[4];
+	  WakeUp();
+	  /* Envia o comando para gerar a chave */
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, tx_data, 4, 1000);
+	  HAL_Delay(10);
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, tx2_data, 8, 1000);
+	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, rx_data, 32, 1000);
+	  HAL_Delay(10);
 
-	    HAL_Delay(5);
-	    ret3 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, &data, sizeof(data), 1000); // Tem que enviar 1 byte
-	    HAL_Delay(5);
-	    saida1 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply, 4, 1000); // tem que receber 0x04 0x11 0x33 0x43
-	    HAL_Delay(5);
-	    uint8_t reply1[32];
-	   // ret4 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readCommand, 8, 1000); // enviar o comando de leitura
-	    HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readCommand, 8, 1000); // enviar o comando de leitura
-	    HAL_Delay(5);
-	    saida2 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply1, 32, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
-	    HAL_Delay(5);
-
-
-	    uint8_t snCmd[4] = {0x02, 0x00, 0x00, 0x00}; // Comando para leitura do serial number
-	    uint8_t snData[9];
-	    HAL_I2C_Master_Transmit(&hi2c1, 0xC8, snCmd, 4, 1000);
-	    HAL_I2C_Master_Receive(&hi2c1, 0xC8, snData, 9, 1000);
-	    // snData = 0x00, 0xC8, 0x00, 0x55, 0x00
-	    HAL_Delay(100);
 /*
 	    //COMANDO DE BLOQUEIO DE CONFIGURAÇÃO
 	    uint8_t blockCommand[10] = {0x03, 0x80, 0x01, 0x23, 0x04, 0x00, 0x00, 0x00};
