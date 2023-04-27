@@ -34,7 +34,7 @@
 #define COMMAND_WRITE           0x12
 
 // Definir os códigos de zonas do ATSHA204A
-#define ZONE_CONFIG 0x00 		// Zona de configuração
+#define ZONE_CONFIG 0x00 			// Zona de configuração
 #define ZONE_DATA 	0x02 			// Zona de dados
 
 // Definir as configurações de slot do ATSHA204A

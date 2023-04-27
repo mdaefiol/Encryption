@@ -57,9 +57,7 @@ static void MX_I2C2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t data[9];
-uint8_t receive1[4];
-uint8_t receive2[32];
+
 /* USER CODE END 0 */
 
 /**
@@ -92,35 +90,57 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_I2C2_Init();
+
   /* USER CODE BEGIN 2 */
-  //uint8_t tx_data[8] = {0x03, 0x07, 0x1B, 0x00, 0x00, 0x00, 0xB2, 0x7E};
-  uint8_t calcule_SHA[8] = {0x03, 0x07, 0x47, 0x00, 0x00, 0x00, 0xB2, 0x7E};
-  uint8_t tx_data[8] = {0x1B, 0x00, 0x00, 0x00};
-  uint8_t tx2_data[8] = {0x03, 0x07, 0x02, 0x00, 0x00, 0x00, 0xB2, 0x7E};
-  uint8_t rx_data[32];
+
+
+  // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
+  // read configuration zone: { 0x03,    0x07,   0x02, 0x00,      0x00,      0x00,    0xB2,    0x7E}
+  uint8_t readCommand[10] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD};
+
+  uint8_t dfggvdfs[10] ={};
+
+  uint8_t data_rec1[4];
+  uint8_t data_rec2[89];
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  // WakeUp();
-	  // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
-	  // read configuration zone: { 0x03, 0x07, 0x02, 0x00, 0x00, 0x00, 0xB2, 0x7E}
 
-	  SerialRead(receive1, receive2);
+	  uint8_t data = 0;
+
+	  HAL_I2C_Master_Receive(&hi2c2, 0xF7, &data, sizeof(data), 1000); 	// Ver onde fala do 0XFE
+	  HAL_Delay(10); // 2.5 ms para acordar; 45 ms para entrar em sleep
+
+	  // first read: 0 byte read - should receive an ACK
+	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, &data, 1, 1000);
 	  HAL_Delay(5);
-	  /* Configura o buffer de transmissão */
 
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, &data, sizeof(data), 1000);		// Envia 1 byte
+	  HAL_Delay(5);
+	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, data_rec1, 4, 1000); 				// Recebe 0x04 0x11 0x33 0x43
+	  HAL_Delay(5);
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readCommand, 8, 1000); 			// Enviar o comando de leitura
+	  HAL_Delay(5);
+	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, data_rec2, 89, 1000); 				// Recebe(byte de tamanho, 35 em decimal)..0x01 0x23...
+	  HAL_Delay(5);
+	  // leitura da zona de configuração
+
+
+
+	  /*
 	  WakeUp();
-	  /* Envia o comando para gerar a chave */
+
 	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, tx_data, 4, 1000);
 	  HAL_Delay(10);
 	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, tx2_data, 8, 1000);
 	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, rx_data, 32, 1000);
 	  HAL_Delay(10);
 
-/*
+
 	    //COMANDO DE BLOQUEIO DE CONFIGURAÇÃO
 	    uint8_t blockCommand[10] = {0x03, 0x80, 0x01, 0x23, 0x04, 0x00, 0x00, 0x00};
 	    HAL_Delay(5);
