@@ -7,23 +7,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         000022bc  0800010c  0800010c  0001010c  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       00000034  080023c8  080023c8  000123c8  2**2
+  2 .rodata       00000038  080023c8  080023c8  000123c8  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  080023fc  080023fc  0002000c  2**0
+  3 .ARM.extab    00000000  08002400  08002400  0002000c  2**0
                   CONTENTS
-  4 .ARM          00000000  080023fc  080023fc  0002000c  2**0
+  4 .ARM          00000000  08002400  08002400  0002000c  2**0
                   CONTENTS
-  5 .preinit_array 00000000  080023fc  080023fc  0002000c  2**0
+  5 .preinit_array 00000000  08002400  08002400  0002000c  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  080023fc  080023fc  000123fc  2**2
+  6 .init_array   00000004  08002400  08002400  00012400  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  7 .fini_array   00000004  08002400  08002400  00012400  2**2
+  7 .fini_array   00000004  08002404  08002404  00012404  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  8 .data         0000000c  20000000  08002404  00020000  2**2
+  8 .data         0000000c  20000000  08002408  00020000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          000000c8  2000000c  08002410  0002000c  2**2
+  9 .bss          000000c8  2000000c  08002414  0002000c  2**2
                   ALLOC
- 10 ._user_heap_stack 00000604  200000d4  08002410  000200d4  2**0
+ 10 ._user_heap_stack 00000604  200000d4  08002414  000200d4  2**0
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  0002000c  2**0
                   CONTENTS, READONLY
@@ -39,9 +39,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   000080a2  00000000  00000000  00028cb9  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0007e41f  00000000  00000000  00030d5b  2**0
+ 18 .debug_str    0007e421  00000000  00000000  00030d5b  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000050  00000000  00000000  000af17a  2**0
+ 19 .comment      00000050  00000000  00000000  000af17c  2**0
                   CONTENTS, READONLY
  20 .debug_frame  00001a14  00000000  00000000  000af1cc  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -84,7 +84,7 @@ Disassembly of section .text:
 int main(void)
 {
  800014c:	b580      	push	{r7, lr}
- 800014e:	b0a2      	sub	sp, #136	; 0x88
+ 800014e:	b0a0      	sub	sp, #128	; 0x80
  8000150:	af02      	add	r7, sp, #8
   /* USER CODE END 1 */
 
@@ -116,104 +116,103 @@ int main(void)
 
   // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
   // read configuration zone: { 0x03,    0x07,   0x02, 0x00,      0x00,      0x00,    0xB2,    0x7E}
-  uint8_t readCommand[10] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD};
- 8000166:	4a2f      	ldr	r2, [pc, #188]	; (8000224 <main+0xd8>)
- 8000168:	f107 0374 	add.w	r3, r7, #116	; 0x74
- 800016c:	ca07      	ldmia	r2, {r0, r1, r2}
- 800016e:	c303      	stmia	r3!, {r0, r1}
- 8000170:	701a      	strb	r2, [r3, #0]
- 8000172:	2300      	movs	r3, #0
- 8000174:	f887 307d 	strb.w	r3, [r7, #125]	; 0x7d
+  uint8_t readCommand[8] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD};
+ 8000166:	4a2e      	ldr	r2, [pc, #184]	; (8000220 <main+0xd4>)
+ 8000168:	f107 0370 	add.w	r3, r7, #112	; 0x70
+ 800016c:	e892 0003 	ldmia.w	r2, {r0, r1}
+ 8000170:	e883 0003 	stmia.w	r3, {r0, r1}
+  // 1- fazer teste começando o adress 1 de outro lugar ex: word 0x02
+  // como muda o adress, muda o crc
+  //
 
-  uint8_t dfggvdfs[10] ={};
- 8000178:	2300      	movs	r3, #0
- 800017a:	66bb      	str	r3, [r7, #104]	; 0x68
- 800017c:	f107 036c 	add.w	r3, r7, #108	; 0x6c
- 8000180:	2200      	movs	r2, #0
- 8000182:	601a      	str	r2, [r3, #0]
- 8000184:	809a      	strh	r2, [r3, #4]
+  uint8_t newCommand[8] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x02,  0x8a, 0x2c};
+ 8000174:	4a2b      	ldr	r2, [pc, #172]	; (8000224 <main+0xd8>)
+ 8000176:	f107 0368 	add.w	r3, r7, #104	; 0x68
+ 800017a:	e892 0003 	ldmia.w	r2, {r0, r1}
+ 800017e:	e883 0003 	stmia.w	r3, {r0, r1}
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 
 	  uint8_t data = 0;
- 8000186:	2300      	movs	r3, #0
- 8000188:	71fb      	strb	r3, [r7, #7]
+ 8000182:	2300      	movs	r3, #0
+ 8000184:	71fb      	strb	r3, [r7, #7]
 
 	  HAL_I2C_Master_Receive(&hi2c2, 0xF7, &data, sizeof(data), 1000); 	// Ver onde fala do 0XFE
- 800018a:	1dfa      	adds	r2, r7, #7
- 800018c:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 8000190:	9300      	str	r3, [sp, #0]
- 8000192:	2301      	movs	r3, #1
- 8000194:	21f7      	movs	r1, #247	; 0xf7
- 8000196:	4824      	ldr	r0, [pc, #144]	; (8000228 <main+0xdc>)
- 8000198:	f000 ff4c 	bl	8001034 <HAL_I2C_Master_Receive>
+ 8000186:	1dfa      	adds	r2, r7, #7
+ 8000188:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 800018c:	9300      	str	r3, [sp, #0]
+ 800018e:	2301      	movs	r3, #1
+ 8000190:	21f7      	movs	r1, #247	; 0xf7
+ 8000192:	4825      	ldr	r0, [pc, #148]	; (8000228 <main+0xdc>)
+ 8000194:	f000 ff4e 	bl	8001034 <HAL_I2C_Master_Receive>
 	  HAL_Delay(10); // 2.5 ms para acordar; 45 ms para entrar em sleep
- 800019c:	200a      	movs	r0, #10
- 800019e:	f000 fa7b 	bl	8000698 <HAL_Delay>
+ 8000198:	200a      	movs	r0, #10
+ 800019a:	f000 fa7d 	bl	8000698 <HAL_Delay>
 
 	  // first read: 0 byte read - should receive an ACK
 	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, &data, 1, 1000);
- 80001a2:	1dfa      	adds	r2, r7, #7
- 80001a4:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 80001a8:	9300      	str	r3, [sp, #0]
- 80001aa:	2301      	movs	r3, #1
- 80001ac:	21c8      	movs	r1, #200	; 0xc8
- 80001ae:	481e      	ldr	r0, [pc, #120]	; (8000228 <main+0xdc>)
- 80001b0:	f000 ff40 	bl	8001034 <HAL_I2C_Master_Receive>
+ 800019e:	1dfa      	adds	r2, r7, #7
+ 80001a0:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 80001a4:	9300      	str	r3, [sp, #0]
+ 80001a6:	2301      	movs	r3, #1
+ 80001a8:	21c8      	movs	r1, #200	; 0xc8
+ 80001aa:	481f      	ldr	r0, [pc, #124]	; (8000228 <main+0xdc>)
+ 80001ac:	f000 ff42 	bl	8001034 <HAL_I2C_Master_Receive>
 	  HAL_Delay(5);
- 80001b4:	2005      	movs	r0, #5
- 80001b6:	f000 fa6f 	bl	8000698 <HAL_Delay>
+ 80001b0:	2005      	movs	r0, #5
+ 80001b2:	f000 fa71 	bl	8000698 <HAL_Delay>
 
 	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, &data, sizeof(data), 1000);		// Envia 1 byte
- 80001ba:	1dfa      	adds	r2, r7, #7
- 80001bc:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 80001c0:	9300      	str	r3, [sp, #0]
- 80001c2:	2301      	movs	r3, #1
- 80001c4:	21c8      	movs	r1, #200	; 0xc8
- 80001c6:	4818      	ldr	r0, [pc, #96]	; (8000228 <main+0xdc>)
- 80001c8:	f000 fe36 	bl	8000e38 <HAL_I2C_Master_Transmit>
+ 80001b6:	1dfa      	adds	r2, r7, #7
+ 80001b8:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 80001bc:	9300      	str	r3, [sp, #0]
+ 80001be:	2301      	movs	r3, #1
+ 80001c0:	21c8      	movs	r1, #200	; 0xc8
+ 80001c2:	4819      	ldr	r0, [pc, #100]	; (8000228 <main+0xdc>)
+ 80001c4:	f000 fe38 	bl	8000e38 <HAL_I2C_Master_Transmit>
 	  HAL_Delay(5);
- 80001cc:	2005      	movs	r0, #5
- 80001ce:	f000 fa63 	bl	8000698 <HAL_Delay>
+ 80001c8:	2005      	movs	r0, #5
+ 80001ca:	f000 fa65 	bl	8000698 <HAL_Delay>
 	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, data_rec1, 4, 1000); 				// Recebe 0x04 0x11 0x33 0x43
- 80001d2:	f107 0264 	add.w	r2, r7, #100	; 0x64
- 80001d6:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 80001da:	9300      	str	r3, [sp, #0]
- 80001dc:	2304      	movs	r3, #4
- 80001de:	21c8      	movs	r1, #200	; 0xc8
- 80001e0:	4811      	ldr	r0, [pc, #68]	; (8000228 <main+0xdc>)
- 80001e2:	f000 ff27 	bl	8001034 <HAL_I2C_Master_Receive>
+ 80001ce:	f107 0264 	add.w	r2, r7, #100	; 0x64
+ 80001d2:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 80001d6:	9300      	str	r3, [sp, #0]
+ 80001d8:	2304      	movs	r3, #4
+ 80001da:	21c8      	movs	r1, #200	; 0xc8
+ 80001dc:	4812      	ldr	r0, [pc, #72]	; (8000228 <main+0xdc>)
+ 80001de:	f000 ff29 	bl	8001034 <HAL_I2C_Master_Receive>
 	  HAL_Delay(5);
- 80001e6:	2005      	movs	r0, #5
- 80001e8:	f000 fa56 	bl	8000698 <HAL_Delay>
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readCommand, 8, 1000); 			// Enviar o comando de leitura
- 80001ec:	f107 0274 	add.w	r2, r7, #116	; 0x74
- 80001f0:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 80001f4:	9300      	str	r3, [sp, #0]
- 80001f6:	2308      	movs	r3, #8
- 80001f8:	21c8      	movs	r1, #200	; 0xc8
- 80001fa:	480b      	ldr	r0, [pc, #44]	; (8000228 <main+0xdc>)
- 80001fc:	f000 fe1c 	bl	8000e38 <HAL_I2C_Master_Transmit>
+ 80001e2:	2005      	movs	r0, #5
+ 80001e4:	f000 fa58 	bl	8000698 <HAL_Delay>
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, newCommand, 8, 1000); 			// Enviar o comando de leitura
+ 80001e8:	f107 0268 	add.w	r2, r7, #104	; 0x68
+ 80001ec:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 80001f0:	9300      	str	r3, [sp, #0]
+ 80001f2:	2308      	movs	r3, #8
+ 80001f4:	21c8      	movs	r1, #200	; 0xc8
+ 80001f6:	480c      	ldr	r0, [pc, #48]	; (8000228 <main+0xdc>)
+ 80001f8:	f000 fe1e 	bl	8000e38 <HAL_I2C_Master_Transmit>
 	  HAL_Delay(5);
- 8000200:	2005      	movs	r0, #5
- 8000202:	f000 fa49 	bl	8000698 <HAL_Delay>
+ 80001fc:	2005      	movs	r0, #5
+ 80001fe:	f000 fa4b 	bl	8000698 <HAL_Delay>
 	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, data_rec2, 89, 1000); 				// Recebe(byte de tamanho, 35 em decimal)..0x01 0x23...
- 8000206:	f107 0208 	add.w	r2, r7, #8
- 800020a:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
- 800020e:	9300      	str	r3, [sp, #0]
- 8000210:	2359      	movs	r3, #89	; 0x59
- 8000212:	21c8      	movs	r1, #200	; 0xc8
- 8000214:	4804      	ldr	r0, [pc, #16]	; (8000228 <main+0xdc>)
- 8000216:	f000 ff0d 	bl	8001034 <HAL_I2C_Master_Receive>
+ 8000202:	f107 0208 	add.w	r2, r7, #8
+ 8000206:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
+ 800020a:	9300      	str	r3, [sp, #0]
+ 800020c:	2359      	movs	r3, #89	; 0x59
+ 800020e:	21c8      	movs	r1, #200	; 0xc8
+ 8000210:	4805      	ldr	r0, [pc, #20]	; (8000228 <main+0xdc>)
+ 8000212:	f000 ff0f 	bl	8001034 <HAL_I2C_Master_Receive>
 	  HAL_Delay(5);
- 800021a:	2005      	movs	r0, #5
- 800021c:	f000 fa3c 	bl	8000698 <HAL_Delay>
+ 8000216:	2005      	movs	r0, #5
+ 8000218:	f000 fa3e 	bl	8000698 <HAL_Delay>
   {
- 8000220:	e7b1      	b.n	8000186 <main+0x3a>
- 8000222:	bf00      	nop
- 8000224:	080023c8 	.word	0x080023c8
+ 800021c:	e7b1      	b.n	8000182 <main+0x36>
+ 800021e:	bf00      	nop
+ 8000220:	080023c8 	.word	0x080023c8
+ 8000224:	080023d0 	.word	0x080023d0
  8000228:	2000007c 	.word	0x2000007c
 
 0800022c <SystemClock_Config>:
@@ -1002,7 +1001,7 @@ LoopFillZerobss:
   ldr r1, =_edata
  80005c0:	2000000c 	.word	0x2000000c
   ldr r2, =_sidata
- 80005c4:	08002404 	.word	0x08002404
+ 80005c4:	08002408 	.word	0x08002408
   ldr r2, =_sbss
  80005c8:	2000000c 	.word	0x2000000c
   ldr r4, =_ebss
@@ -5933,7 +5932,7 @@ if (((RCC_ClkInitStruct->ClockType) & RCC_CLOCKTYPE_PCLK1) == RCC_CLOCKTYPE_PCLK
  800220e:	bf00      	nop
  8002210:	40022000 	.word	0x40022000
  8002214:	40021000 	.word	0x40021000
- 8002218:	080023e4 	.word	0x080023e4
+ 8002218:	080023e8 	.word	0x080023e8
  800221c:	20000000 	.word	0x20000000
  8002220:	20000004 	.word	0x20000004
 
@@ -6081,7 +6080,7 @@ uint32_t HAL_RCC_GetSysClockFreq(void)
  80022ca:	bc90      	pop	{r4, r7}
  80022cc:	4770      	bx	lr
  80022ce:	bf00      	nop
- 80022d0:	080023d4 	.word	0x080023d4
+ 80022d0:	080023d8 	.word	0x080023d8
  80022d4:	40021000 	.word	0x40021000
  80022d8:	007a1200 	.word	0x007a1200
  80022dc:	003d0900 	.word	0x003d0900
@@ -6129,7 +6128,7 @@ uint32_t HAL_RCC_GetPCLK1Freq(void)
  8002310:	4618      	mov	r0, r3
  8002312:	bd80      	pop	{r7, pc}
  8002314:	40021000 	.word	0x40021000
- 8002318:	080023f4 	.word	0x080023f4
+ 8002318:	080023f8 	.word	0x080023f8
 
 0800231c <RCC_Delay>:
   * @brief  This function provides delay (in milliseconds) based on CPU cycles method.
@@ -6198,10 +6197,10 @@ static void RCC_Delay(uint32_t mdelay)
  800238a:	4798      	blx	r3
  800238c:	3601      	adds	r6, #1
  800238e:	e7f2      	b.n	8002376 <__libc_init_array+0x1e>
- 8002390:	080023fc 	.word	0x080023fc
- 8002394:	080023fc 	.word	0x080023fc
- 8002398:	080023fc 	.word	0x080023fc
- 800239c:	08002400 	.word	0x08002400
+ 8002390:	08002400 	.word	0x08002400
+ 8002394:	08002400 	.word	0x08002400
+ 8002398:	08002400 	.word	0x08002400
+ 800239c:	08002404 	.word	0x08002404
 
 080023a0 <memset>:
  80023a0:	4603      	mov	r3, r0

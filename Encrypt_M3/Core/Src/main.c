@@ -94,11 +94,14 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 
-  // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
+  // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDREn SS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
   // read configuration zone: { 0x03,    0x07,   0x02, 0x00,      0x00,      0x00,    0xB2,    0x7E}
-  uint8_t readCommand[10] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD};
+  uint8_t readCommand[8] = {0x03, 0x07, 0x02, 0x00, 0x00, 0x00, 0x09, 0xAD};
+  // 1- fazer teste começando o adress 1 de outro lugar ex: word 0x02
+  // como muda o adress, muda o crc
+  //
 
-  uint8_t dfggvdfs[10] ={};
+  uint8_t newCommand[8] = {0x03, 0x07, 0x02, 0x00, 0x00, 0x02,  0x8a, 0x2c};
 
   uint8_t data_rec1[4];
   uint8_t data_rec2[89];
@@ -123,7 +126,7 @@ int main(void)
 	  HAL_Delay(5);
 	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, data_rec1, 4, 1000); 				// Recebe 0x04 0x11 0x33 0x43
 	  HAL_Delay(5);
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readCommand, 8, 1000); 			// Enviar o comando de leitura
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, newCommand, 8, 1000); 			// Enviar o comando de leitura
 	  HAL_Delay(5);
 	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, data_rec2, 89, 1000); 				// Recebe(byte de tamanho, 35 em decimal)..0x01 0x23...
 	  HAL_Delay(5);
