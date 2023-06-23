@@ -46,8 +46,11 @@
 #define ZONE_LOCK_CONFIG_UNLOCKED 	0x00 // Zona desbloqueada
 
 void WakeUp(void);
-void SerialRead(uint8_t *data_rec1, uint8_t *data_rec2);
-void CommandSerial(uint8_t *sData);
+void ReadConfig(uint8_t *readCommand, uint8_t *data_rec ,uint8_t *data_config);
+void WriteConfigZone(void);
+void BlockConfigZone(void);
+void WriteDataZone(void);
+
 
 //void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) ;
 

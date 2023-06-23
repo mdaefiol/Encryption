@@ -1,3 +1,5 @@
-../Core/Src/ATSHA204.c:29:6:WakeUp	24	static
-../Core/Src/ATSHA204.c:42:6:SerialRead	40	static
-../Core/Src/ATSHA204.c:62:6:CommandSerial	32	static
+../Core/Src/ATSHA204.c:30:6:WakeUp	24	static
+../Core/Src/ATSHA204.c:38:6:ReadConfig	40	static
+../Core/Src/ATSHA204.c:58:6:WriteConfigZone	112	static
+../Core/Src/ATSHA204.c:108:6:BlockConfigZone	24	static
+../Core/Src/ATSHA204.c:114:6:WriteDataZone	4	static

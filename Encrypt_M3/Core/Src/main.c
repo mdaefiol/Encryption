@@ -39,7 +39,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c2;
 
 USART_HandleTypeDef husart1;
 
@@ -50,8 +50,8 @@ USART_HandleTypeDef husart1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_I2C1_Init(void);
 static void MX_USART1_Init(void);
+static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -68,7 +68,6 @@ static void MX_USART1_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -89,22 +88,34 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_I2C1_Init();
   MX_USART1_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 
+  // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
+  uint8_t readCommand0[8] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD}; // read -> param1 = zone = 1000 0000
+  uint8_t readCommand1[8] = {0x03, 0x07, 0x02, 0x80, 0x08, 0x00,0x0a, 0x4d}; // read -> param1 = zone = 1000 0000
+  uint8_t readCommand2[8] = {0x03, 0x07, 0x02, 0x00, 0x10, 0x00, 0x1d, 0x9d}; // read -> param1 = zone = 1000 0000
+  uint8_t readCommand3[8] = {0x03, 0x07, 0x02, 0x00, 0x11, 0x00, 0x14, 0x1d};
+  uint8_t readCommand4[8] = {0x03, 0x07, 0x02, 0x00, 0x12, 0x00, 0x1b, 0x1d};
+  uint8_t readCommand5[8] = {0x03, 0x07, 0x02, 0x00, 0x13, 0x00, 0x12, 0x9d};
+  uint8_t readCommand6[8] = {0x03, 0x07, 0x02, 0x00, 0x14, 0x00, 0x1e, 0xdd};
+  uint8_t readCommand7[8] = {0x03, 0x07, 0x02, 0x00, 0x15, 0x00, 0x17, 0x5d};
 
-  // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDREn SS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
-  // read configuration zone: { 0x03,    0x07,   0x02, 0x00,      0x00,      0x00,    0xB2,    0x7E}
-  uint8_t readCommand[8] = {0x03, 0x07, 0x02, 0x00, 0x00, 0x00, 0x09, 0xAD};
-  // 1- fazer teste começando o adress 1 de outro lugar ex: word 0x02
-  // como muda o adress, muda o crc
-  //
 
-  uint8_t newCommand[8] = {0x03, 0x07, 0x02, 0x00, 0x00, 0x02,  0x8a, 0x2c};
+  uint8_t read_byte[4];
+  uint8_t read_byte1[4];
+  uint8_t read_byte2[4];
 
-  uint8_t data_rec1[4];
-  uint8_t data_rec2[89];
+  uint8_t read_config[32];
+  uint8_t read_config0[32];
+  uint8_t read_config1[32];
+  uint8_t read_config2[4];
+  uint8_t read_config3[4];
+  uint8_t read_config4[4];
+  uint8_t read_config5[4];
+  uint8_t read_config6[4];
+  uint8_t read_config7[4];
 
   /* USER CODE END 2 */
 
@@ -112,58 +123,49 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	  uint8_t data = 0;
-
-	  HAL_I2C_Master_Receive(&hi2c2, 0xF7, &data, sizeof(data), 1000); 	// Ver onde fala do 0XFE
-	  HAL_Delay(10); // 2.5 ms para acordar; 45 ms para entrar em sleep
-
-	  // first read: 0 byte read - should receive an ACK
-	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, &data, 1, 1000);
-	  HAL_Delay(5);
-
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, &data, sizeof(data), 1000);		// Envia 1 byte
-	  HAL_Delay(5);
-	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, data_rec1, 4, 1000); 				// Recebe 0x04 0x11 0x33 0x43
-	  HAL_Delay(5);
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, newCommand, 8, 1000); 			// Enviar o comando de leitura
-	  HAL_Delay(5);
-	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, data_rec2, 89, 1000); 				// Recebe(byte de tamanho, 35 em decimal)..0x01 0x23...
-	  HAL_Delay(5);
-	  // leitura da zona de configuração
-
-
-
-	  /*
 	  WakeUp();
+	  ReadConfig(readCommand0, read_byte1, read_config);
+	  WriteConfigZone();
+	  ReadConfig(readCommand0, read_byte, read_config0);
+	  ReadConfig(readCommand1, read_byte, read_config1);
+	  ReadConfig(readCommand2, read_byte, read_config2);
+	  ReadConfig(readCommand3, read_byte2, read_config3);
+	  ReadConfig(readCommand4, read_byte, read_config4);
+	  ReadConfig(readCommand5, read_byte, read_config5);
+	  ReadConfig(readCommand6, read_byte, read_config6);
+	  ReadConfig(readCommand7, read_byte, read_config7);
 
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, tx_data, 4, 1000);
 	  HAL_Delay(10);
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, tx2_data, 8, 1000);
-	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, rx_data, 32, 1000);
-	  HAL_Delay(10);
+	  // fazer a configuração de todos os slots, travar a configuração
 
+	  // WRITE MASTERKEY
+/*
+	  // comando para bloqueio da zona de configuração do slot
+	  uint8_t configBlock[8] = {};
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, configBlock, 8, 1000);
+	  HAL_Delay(5);
 
-	    //COMANDO DE BLOQUEIO DE CONFIGURAÇÃO
-	    uint8_t blockCommand[10] = {0x03, 0x80, 0x01, 0x23, 0x04, 0x00, 0x00, 0x00};
-	    HAL_Delay(5);
-	  //  ret5 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, &data, sizeof(data), 1000); // Tem que enviar 1 byte
-	  //  HAL_Delay(5);
-	  //  saida3 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply, 4, 1000); // tem que receber 0x04 0x11 0x33 0x43
-	  //  HAL_Delay(5);
-	    uint8_t reply_block[32];
-	    ret5 = HAL_I2C_Master_Transmit(&hi2c2, 0xC8, blockCommand, 8, 1000); // enviar o comando de bloqueio de configuração
-	    HAL_Delay(5);
-	    saida3 = HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply_block, 32, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
-	    HAL_Delay(5);
+	  // MASTERKEY (32bytes)
+	  uint8_t masterKEY[32] = {0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9};
 
-	    uint8_t writedata[8] = {0x03, 0x00, 0x00, 0x55, 0x55, 0x55, 0x55, 0x55};
-	    HAL_I2C_Master_Transmit(&hi2c2, 0xC8, blockCommand, 8, 1000); // enviar o comando de bloqueio de configuração
-	   	HAL_Delay(5);
-	    HAL_I2C_Master_Receive(&hi2c2, 0xC8, reply_block, 32, 1000); // tem que receber (byte de tamanho, 35 em decimal) .. 0x01 0x23 ...
-	   	HAL_Delay(5);
+	  // comando para envio da MASTERKEY no SLOT ID 0x800E
+	  uint8_t writeKEY[8] = {0x03, 0x07, 0x12, 0x80, 0x0E, 0x00, 0x0C, 0xAD};
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeKEY, 8, 1000);
+	  HAL_Delay(5);
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, masterKEY, 32, 1000);
+	  HAL_Delay(5);
 
-	    HAL_Delay(100);
+	  // comando para bloqueio da zona de dados do slot 0x800E
+	  uint8_t configData[8] = {};
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, configData, 8, 1000);
+	  HAL_Delay(5);
+
+	  // leitura para ver se funcionou
+	  uint8_t readKEY[8] = {0x03, 0x07, 0x02, 0x80, 0x0E, 0x00, 0x0F, 0x8D};
+	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readKEY, 8, 1000);
+	  HAL_Delay(5);
+	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, rec_MasterKey, 32, 1000);
+	  HAL_Delay(5);
 */
     /* USER CODE END WHILE */
 
@@ -212,36 +214,36 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief I2C1 Initialization Function
+  * @brief I2C2 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_I2C1_Init(void)
+static void MX_I2C2_Init(void)
 {
 
-  /* USER CODE BEGIN I2C1_Init 0 */
+  /* USER CODE BEGIN I2C2_Init 0 */
 
-  /* USER CODE END I2C1_Init 0 */
+  /* USER CODE END I2C2_Init 0 */
 
-  /* USER CODE BEGIN I2C1_Init 1 */
+  /* USER CODE BEGIN I2C2_Init 1 */
 
-  /* USER CODE END I2C1_Init 1 */
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 400000;
-  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2C1_Init 2 */
+  /* USER CODE BEGIN I2C2_Init 2 */
 
-  /* USER CODE END I2C1_Init 2 */
+  /* USER CODE END I2C2_Init 2 */
 
 }
 
@@ -286,19 +288,12 @@ static void MX_USART1_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  /*Configure GPIO pins : PB10 PB11 */
-  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
 
