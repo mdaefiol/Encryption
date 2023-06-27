@@ -94,7 +94,7 @@ int main(void)
 
   // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
   uint8_t readCommand0[8] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD}; // read -> param1 = zone = 1000 0000
-  uint8_t readCommand1[8] = {0x03, 0x07, 0x02, 0x80, 0x08, 0x00,0x0a, 0x4d}; // read -> param1 = zone = 1000 0000
+  uint8_t readCommand1[8] = {0x03, 0x07, 0x02, 0x80, 0x08, 0x00, 0x0a, 0x4d}; // read -> param1 = zone = 1000 0000
   uint8_t readCommand2[8] = {0x03, 0x07, 0x02, 0x00, 0x10, 0x00, 0x1d, 0x9d}; // read -> param1 = zone = 1000 0000
   uint8_t readCommand3[8] = {0x03, 0x07, 0x02, 0x00, 0x11, 0x00, 0x14, 0x1d};
   uint8_t readCommand4[8] = {0x03, 0x07, 0x02, 0x00, 0x12, 0x00, 0x1b, 0x1d};
@@ -104,18 +104,18 @@ int main(void)
 
 
   uint8_t read_byte[4];
-  uint8_t read_byte1[4];
-  uint8_t read_byte2[4];
+  uint8_t receiv_ack[1] = {0};
 
-  uint8_t read_config[32];
-  uint8_t read_config0[32];
-  uint8_t read_config1[32];
-  uint8_t read_config2[4];
-  uint8_t read_config3[4];
-  uint8_t read_config4[4];
-  uint8_t read_config5[4];
-  uint8_t read_config6[4];
-  uint8_t read_config7[4];
+  //uint8_t read_config[32] = {0};
+  uint8_t read_config0[35] = {0};
+  uint8_t read_config1[35] = {0};
+  uint8_t read_config2[7] = {0};
+  uint8_t read_config3[7] = {0};
+  uint8_t read_config4[7] = {0};
+  uint8_t read_config5[7] = {0};
+  uint8_t read_config6[7] = {0};
+  uint8_t read_config7[7] = {0};
+  uint8_t read_config8[7] = {0};
 
   /* USER CODE END 2 */
 
@@ -123,18 +123,21 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  WakeUp();
-	  ReadConfig(readCommand0, read_byte1, read_config);
-	  WriteConfigZone();
-	  ReadConfig(readCommand0, read_byte, read_config0);
-	  ReadConfig(readCommand1, read_byte, read_config1);
-	  ReadConfig(readCommand2, read_byte, read_config2);
-	  ReadConfig(readCommand3, read_byte2, read_config3);
-	  ReadConfig(readCommand4, read_byte, read_config4);
-	  ReadConfig(readCommand5, read_byte, read_config5);
-	  ReadConfig(readCommand6, read_byte, read_config6);
-	  ReadConfig(readCommand7, read_byte, read_config7);
+	  WakeUp(read_byte);
+	 // ReadConfig(readCommand0, read_byte1, read_config);
+	 // WriteConfigZone();
+	  ReadConfig(readCommand0, 35, read_config0);
+	  ReadConfig(readCommand1, 35, read_config1);
+	  ReadConfig(readCommand2, 4, read_config2);
+	  ReadConfig(readCommand3, 4, read_config3);
+	  ReadConfig(readCommand4, 4, read_config4);
+	  ReadConfig(readCommand5, 4, read_config5);
+	  ReadConfig(readCommand6, 4, read_config6);
+	  ReadConfig(readCommand7, 4, read_config7);
 
+	 // BlockConfigZone(receiv_ack);
+
+	 // ReadConfig(readCommand7, 4, read_config8);
 	  HAL_Delay(10);
 	  // fazer a configuração de todos os slots, travar a configuração
 

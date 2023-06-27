@@ -45,10 +45,10 @@
 #define ZONE_LOCK_CONFIG_LOCKED 	0x55 // Zona bloqueada
 #define ZONE_LOCK_CONFIG_UNLOCKED 	0x00 // Zona desbloqueada
 
-void WakeUp(void);
-void ReadConfig(uint8_t *readCommand, uint8_t *data_rec ,uint8_t *data_config);
+void WakeUp(uint8_t *data_rec);
+void ReadConfig(uint8_t *readCommand, uint16_t size, uint8_t *data_config);
 void WriteConfigZone(void);
-void BlockConfigZone(void);
+void BlockConfigZone(uint8_t *receiv_byte);
 void WriteDataZone(void);
 
 
