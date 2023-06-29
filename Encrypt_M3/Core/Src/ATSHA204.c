@@ -163,12 +163,23 @@ void BlockConfigZone(uint8_t *receiv_byte){
 
 
 void WriteDataZone(void){
-	// Lock command: {COMMAND, COUNT, OPCODE, ZONE,  ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
-	uint8_t blockConfig[] = {0x03, 0x07, COMMAND_WRITE, 0x00, 0x00, 0xc3, , };
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, blockConfig, sizeof(blockConfig), 1000);
+	// Write command: {COMMAND, COUNT, OPCODE, ZONE,  ADDRESS_1, ADDRESS_2, DATA, CRC_LSB, CRC_MSB}
+	uint8_t writeData0[] = {0x03, 0x27 , 0x12, 0x82, 0x20, 0x00 , WritePwd1, 0x3c, 0xb4};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeData0, sizeof(writeData0), 1000);
 	HAL_Delay(5);
-	HAL_I2C_Master_Receive(&hi2c2, 0xC8, receiv_byte, 1, 1000);
+
+	uint8_t writeData1[] = {0x03, 0x27 , 0x12, 0x82, 0x40, 0x00 , ReadPwd1, 0x27, 0x41};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeData1, sizeof(writeData1), 1000);
 	HAL_Delay(5);
+
+	uint8_t writeData2[] = {0x03, 0x27 , 0x12, 0x82, 0x60, 0x00, DATA0, 0xb0, 0xe2};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeData2, sizeof(writeData2), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeData3[] = {0x03, 0x27 , 0x12, 0x82, 0x80, 0x00, DATA1, 0xa8, 0xfb};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeData3, sizeof(writeData3), 1000);
+	HAL_Delay(5);
+
 
 }
 
