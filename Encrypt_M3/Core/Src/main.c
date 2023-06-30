@@ -141,35 +141,6 @@ int main(void)
 	  HAL_Delay(10);
 	  // fazer a configuração de todos os slots, travar a configuração
 
-	  // WRITE MASTERKEY
-/*
-	  // comando para bloqueio da zona de configuração do slot
-	  uint8_t configBlock[8] = {};
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, configBlock, 8, 1000);
-	  HAL_Delay(5);
-
-	  // MASTERKEY (32bytes)
-	  uint8_t masterKEY[32] = {0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9};
-
-	  // comando para envio da MASTERKEY no SLOT ID 0x800E
-	  uint8_t writeKEY[8] = {0x03, 0x07, 0x12, 0x80, 0x0E, 0x00, 0x0C, 0xAD};
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeKEY, 8, 1000);
-	  HAL_Delay(5);
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, masterKEY, 32, 1000);
-	  HAL_Delay(5);
-
-	  // comando para bloqueio da zona de dados do slot 0x800E
-	  uint8_t configData[8] = {};
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, configData, 8, 1000);
-	  HAL_Delay(5);
-
-	  // leitura para ver se funcionou
-	  uint8_t readKEY[8] = {0x03, 0x07, 0x02, 0x80, 0x0E, 0x00, 0x0F, 0x8D};
-	  HAL_I2C_Master_Transmit(&hi2c2, 0xC8, readKEY, 8, 1000);
-	  HAL_Delay(5);
-	  HAL_I2C_Master_Receive(&hi2c2, 0xC8, rec_MasterKey, 32, 1000);
-	  HAL_Delay(5);
-*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

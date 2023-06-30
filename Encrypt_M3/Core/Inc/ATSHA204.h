@@ -17,6 +17,14 @@
 #define ZONE_ACCESS_CONFIG_SIZE 4 		// Tamanho da zona de configuração
 #define PUBLIC_KEY_SIZE 		64 		// Tamanho da chave pública gerada
 
+// Geral
+#define COMMAND 				0x03
+#define SIZE_WRITE_DATA			0x27
+#define SIZE_WRITE_CONFIG		0x0B
+#define SIZE_BLOCK_CONFIG		0x07
+#define ZONE_CONFIG_LOCK 		0x00
+#define ZONE_DATA_LOCK 			0x01
+
 // Definir os códigos de comando do ATSHA204A
 #define COMMAND_CHECKMAC        0x28
 #define COMMAND_DERIVE_KEY      0x1C
@@ -44,6 +52,7 @@
 // Definir as configurações de bloqueio de zona do ATSHA204A
 #define ZONE_LOCK_CONFIG_LOCKED 	0x55 // Zona bloqueada
 #define ZONE_LOCK_CONFIG_UNLOCKED 	0x00 // Zona desbloqueada
+
 
 void WakeUp(uint8_t *data_rec);
 void ReadConfig(uint8_t *readCommand, uint16_t size, uint8_t *data_config);
