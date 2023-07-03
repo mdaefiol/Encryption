@@ -126,6 +126,19 @@ int main(void)
 	  WakeUp(read_byte);
 	 // ReadConfig(readCommand0, read_byte1, read_config);
 	 // WriteConfigZone();
+	 // ReadConfig(readCommand0, 35, read_config0);
+	 // ReadConfig(readCommand1, 35, read_config1);
+	 // ReadConfig(readCommand2, 4, read_config2);
+	 // ReadConfig(readCommand3, 4, read_config3);
+	 // ReadConfig(readCommand4, 4, read_config4);
+	 // ReadConfig(readCommand5, 4, read_config5);
+	 //ReadConfig(readCommand6, 4, read_config6);
+	 // ReadConfig(readCommand7, 4, read_config7);
+
+	  BlockConfigZone(receiv_ack);
+	  WriteDataZone();
+	  BlockDataZone();
+	 // ReadConfig(readCommand7, 4, read_config8);
 	  ReadConfig(readCommand0, 35, read_config0);
 	  ReadConfig(readCommand1, 35, read_config1);
 	  ReadConfig(readCommand2, 4, read_config2);
@@ -134,10 +147,6 @@ int main(void)
 	  ReadConfig(readCommand5, 4, read_config5);
 	  ReadConfig(readCommand6, 4, read_config6);
 	  ReadConfig(readCommand7, 4, read_config7);
-
-	 // BlockConfigZone(receiv_ack);
-
-	 // ReadConfig(readCommand7, 4, read_config8);
 	  HAL_Delay(10);
 	  // fazer a configuração de todos os slots, travar a configuração
 

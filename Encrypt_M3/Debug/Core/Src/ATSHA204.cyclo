@@ -1,0 +1,6 @@
+ATSHA204.c:47:6:WakeUp	1
+ATSHA204.c:65:6:ReadConfig	1
+ATSHA204.c:74:6:WriteConfigZone	1
+ATSHA204.c:124:6:BlockConfigZone	1
+ATSHA204.c:134:6:WriteDataZone	1
+ATSHA204.c:218:6:BlockDataZone	1

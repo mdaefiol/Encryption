@@ -23,7 +23,7 @@
 #define SIZE_WRITE_CONFIG		0x0B
 #define SIZE_BLOCK_CONFIG		0x07
 #define ZONE_CONFIG_LOCK 		0x00
-#define ZONE_DATA_LOCK 			0x01
+#define ZONE_DATA_LOCK 			0x81
 
 // Definir os códigos de comando do ATSHA204A
 #define COMMAND_CHECKMAC        0x28
@@ -59,8 +59,7 @@ void ReadConfig(uint8_t *readCommand, uint16_t size, uint8_t *data_config);
 void WriteConfigZone(void);
 void BlockConfigZone(uint8_t *receiv_byte);
 void WriteDataZone(void);
-
-
+void BlockDataZone(void);
 //void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) ;
 
 #endif /* INC_ATSHA204_H_ */
