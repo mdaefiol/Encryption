@@ -102,6 +102,8 @@ int main(void)
   uint8_t readCommand6[8] = {0x03, 0x07, 0x02, 0x00, 0x14, 0x00, 0x1e, 0xdd};
   uint8_t readCommand7[8] = {0x03, 0x07, 0x02, 0x00, 0x15, 0x00, 0x17, 0x5d};
 
+  uint8_t readData0[8] = {0x03, 0x07, 0x02, 0x82, 0x70, 0x00, 0x09, 0x8c};
+  uint8_t receiv_MASTERKEY[35] = {0};
 
   uint8_t read_byte[4];
   uint8_t receiv_ack[1] = {0};
@@ -137,16 +139,14 @@ int main(void)
 
 	  BlockConfigZone(receiv_ack);
 	  WriteDataZone();
+	  WriteOTPZone();
 	  BlockDataZone();
-	 // ReadConfig(readCommand7, 4, read_config8);
+
 	  ReadConfig(readCommand0, 35, read_config0);
 	  ReadConfig(readCommand1, 35, read_config1);
-	  ReadConfig(readCommand2, 4, read_config2);
-	  ReadConfig(readCommand3, 4, read_config3);
-	  ReadConfig(readCommand4, 4, read_config4);
-	  ReadConfig(readCommand5, 4, read_config5);
-	  ReadConfig(readCommand6, 4, read_config6);
 	  ReadConfig(readCommand7, 4, read_config7);
+	  ReadDataZone(readData0, 35, receiv_MASTERKEY);
+
 	  HAL_Delay(10);
 	  // fazer a configuração de todos os slots, travar a configuração
 

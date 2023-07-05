@@ -44,6 +44,7 @@ uint8_t MASTERKEY[] =	{0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE
 uint8_t DATA4[] = 		{0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xF0, 0xF1, 0xF2, 0xF3, 0xF4,
 						 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9};
 
+
 void WakeUp(uint8_t *data_rec){
 
 	uint8_t data = 0;
@@ -204,6 +205,7 @@ void WriteDataZone(void){
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, writeData13, sizeof(writeData13), 1000);
 	HAL_Delay(5);
 
+	// Write command: {COMMAND, COUNT, OPCODE, Param1 + Param2_LSB + Param2_MSB + DADOS + CRC_LSB + CRC_MSB}
 	uint8_t writeData14[] = {COMMAND, SIZE_WRITE_DATA, COMMAND_WRITE, 0x82, 0x70, 0x00, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4,
 			 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9,  0x5c, 0x66};
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, writeData14, sizeof(writeData14), 1000);
@@ -215,11 +217,88 @@ void WriteDataZone(void){
 	HAL_Delay(5);
 }
 
+void WriteOTPZone(void){
+
+	// Write OTP command: {COMMAND, COUNT, OPCODE, ZONE, ADRESS, DADOS, CRC1, CRC2}
+	uint8_t writeOTP0[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x00, 0x01, 0x02, 0x03,0x04, 0x05, 0x48};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP0, sizeof(writeOTP0), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP1[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x01, 0x01, 0x02, 0x03,0x04, 0x06, 0xf4};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP1, sizeof(writeOTP1), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP2[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x02, 0x01, 0x02, 0x03,0x04, 0x06, 0xd6};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP2, sizeof(writeOTP2), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP3[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x03, 0x01, 0x02, 0x03, 0x04, 0x05, 0x6a};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP3, sizeof(writeOTP3), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP4[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x04, 0x01, 0x02, 0x03, 0x04, 0x06, 0xc7};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP4, sizeof(writeOTP4), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP5[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x05, 0x01, 0x02, 0x03, 0x04, 0x05, 0x7b};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP5, sizeof(writeOTP5), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP6[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x59};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP6, sizeof(writeOTP6), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP7[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x07, 0x01, 0x02, 0x03, 0x04, 0x06, 0xe5};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP7, sizeof(writeOTP7), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP8[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x08, 0x01, 0x02, 0x03, 0x04, 0x86, 0xcf};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP8, sizeof(writeOTP8), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP9[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x09, 0x01, 0x02, 0x03, 0x04, 0x85, 0x73};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP9, sizeof(writeOTP9), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP10[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0A, 0x01, 0x02, 0x03, 0x04, 0x85, 0x51};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP10, sizeof(writeOTP10), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP11[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0B, 0x01, 0x02, 0x03, 0x04, 0x86, 0xed};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP11, sizeof(writeOTP11), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP12[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x85, 0x40};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP12, sizeof(writeOTP12), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP13[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0D, 0x01, 0x02, 0x03, 0x04, 0x86, 0xfc};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP13, sizeof(writeOTP13), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP14[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0E, 0x01, 0x02, 0x03, 0x04, 0x86, 0xde};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP14, sizeof(writeOTP14), 1000);
+	HAL_Delay(5);
+
+	uint8_t writeOTP15[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0F, 0x01, 0x02, 0x03, 0x04, 0x85, 0x62};
+	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP15, sizeof(writeOTP15), 1000);
+	HAL_Delay(5);
+}
+
 void BlockDataZone(void){
 	// Lock command: {COMMAND, COUNT, OPCODE, ZONE, CRC_DATA_OTP_LSB,   CRC_DATA_OTP_MSB, CRC_LSB, CRC_MSB}
 	//Data and OTP Zone: Seus conteúdos são concatenados nessa ordem para criar a entrada para o algoritmo CRC
-	uint8_t blockConfig[] = { COMMAND, SIZE_BLOCK_CONFIG, COMMAND_LOCK, ZONE_DATA_LOCK, 0x60, 0x24, 0xf5, 0x93};
+	uint8_t blockConfig[] = { COMMAND, SIZE_BLOCK_CONFIG, COMMAND_LOCK, ZONE_DATA_LOCK, 0x04, 0x58, 0x66, 0xc7};
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, blockConfig, sizeof(blockConfig), 1000);
+	HAL_Delay(5);
+}
+
+
+void ReadDataZone(uint8_t *readData, uint16_t size, uint8_t *data) {
+
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, readData, 8, 1000); 		    // Send read command
+	HAL_Delay(5);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data, size, 1000);
 	HAL_Delay(5);
 }
 
