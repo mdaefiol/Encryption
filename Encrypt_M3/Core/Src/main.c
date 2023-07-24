@@ -135,8 +135,10 @@ int main(void)
 	  ReadConfig(readCommand0, 35, read_config0);
 	  ReadConfig(readCommand1, 35, read_config1);
 	  ReadConfig(readCommand7, 4, read_config7);
+	  //WriteDataZone();
+	  WriteData();
+	  BlockConfigZone(receiv_ack);
 	  ReadDataZone(readData0, 35, receiv_MASTERKEY);
-
 	  HAL_Delay(10);
 	  // fazer a configuração de todos os slots, travar a configuração
 
