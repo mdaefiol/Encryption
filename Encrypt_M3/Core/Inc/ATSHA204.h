@@ -66,7 +66,11 @@ void WriteDataZone(void);
 void WriteOTPZone(void);
 void BlockDataZone(void);
 void WriteData(void);
+void WriteEncript(uint16_t size, uint8_t *data);
+
 void ReadDataZone(uint8_t *readData, uint16_t size, uint8_t *data);
+void ReadEncript(uint8_t *readEncript, uint16_t size, uint8_t *data);
+
 //void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) ;
 
 #endif /* INC_ATSHA204_H_ */

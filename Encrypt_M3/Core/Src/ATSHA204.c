@@ -73,6 +73,7 @@ void ReadConfig(uint8_t *readCommand, uint16_t size, uint8_t *data_config) {
 
 
 void WriteConfigZone(void){
+
 	// WritePwd1 + ReadPwd1
 	// comando para configuração da zona de configuração do slot: 0x00 e 0x01
 	uint8_t configSlot0_1[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x05, 0x00, 0x60, 0xE9, 0x70, 0xE8, 0x53, 0x98};
@@ -124,6 +125,7 @@ void WriteConfigZone(void){
 }
 
 void BlockConfigZone(uint8_t *receiv_byte){
+
 	// Lock command: {COMMAND, COUNT, OPCODE, ZONE, CRC_88_LSB,  CRC_88_MSB, CRC_LSB, CRC_MSB}
 	uint8_t blockConfig[] = { COMMAND, SIZE_BLOCK_CONFIG, COMMAND_LOCK, ZONE_CONFIG_LOCK, 0x00, 0xc3, 0xa4, 0x0f};
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, blockConfig, sizeof(blockConfig), 1000);
@@ -287,6 +289,7 @@ void WriteOTPZone(void){
 }
 
 void BlockDataZone(void){
+
 	// Lock command: {COMMAND, COUNT, OPCODE, ZONE, CRC_DATA_OTP_LSB,   CRC_DATA_OTP_MSB, CRC_LSB, CRC_MSB}
 	//Data and OTP Zone: Seus conteúdos são concatenados nessa ordem para criar a entrada para o algoritmo CRC
 	uint8_t blockConfig[] = { COMMAND, SIZE_BLOCK_CONFIG, COMMAND_LOCK, ZONE_DATA_LOCK, 0x04, 0x58, 0x66, 0xc7};
@@ -304,9 +307,12 @@ void ReadDataZone(uint8_t *readData, uint16_t size, uint8_t *data) {
 }
 
 void WriteData(){
+
 	// Write command: {COMMAND, COUNT, OPCODE, Param1 + Param2_LSB + Param2_MSB + DADOS + CRC_LSB + CRC_MSB}
-	uint8_t writeMASTERKEY[] = {COMMAND, SIZE_WRITE_DATA, COMMAND_WRITE, 0x82, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04,
-		 	 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x70, 0xc7};
+	uint8_t writeMASTERKEY[]={COMMAND, SIZE_WRITE_DATA, COMMAND_WRITE, 0x82, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04,
+	0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01,
+	0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x70, 0xc7};
+
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, writeMASTERKEY, sizeof(writeMASTERKEY), 1000);
 	HAL_Delay(5);
 
@@ -318,26 +324,59 @@ void WriteData(){
 	//HAL_Delay(5);
 }
 
-void WriteEncript(){
+void WriteEncript(uint16_t size, uint8_t *data){
 
 	// 1 - nonce
 	// 2 - generate digest
 	// 3 - write command p ediçao do conteudo -
-
 	uint8_t NumIn[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04,
 	0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
+
+	// param = 0x00 -> recomendado p uso aleatorio ; 0x11 -> passa numin p tempkey
+	//
+	// NONCE command: {COMMAND, COUNT, OPCODE, Param1, 0x00, 0x00, NumIn, CRC_LSB, CRC_MSB}
+	uint8_t noncecommand[] = {COMMAND, SIZE_WRITE_NONCE, COMMAND_NONCE, 0x00 , 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04,
+	0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01,
+	0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,  0xb9, 0x03};
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, noncecommand, sizeof(noncecommand), 1000);
+	HAL_Delay(5);
+
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data, size, 1000);
+	HAL_Delay(5);
+
+/*
+	// GENDIG command: {COMMAND, COUNT, OPCODE, ZONE, SLOTID_LSB, SLOTID_MSB, CRC_LSB, CRC_MSB}
+	uint8_t GenDig[] = {COMMAND, SIZE_WRITE_GENDIG, COMMAND_GENDIG, 0x02, 0x00, 0x00, 0x30, 0x08};
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, GenDig, sizeof(GenDig), 1000);
+	HAL_Delay(5);
+
+	// Write command: {COMMAND, COUNT, OPCODE, Param1, Param2_LSB, Param2_MSB, DADOS, CRC_LSB, CRC_MSB}
+	uint8_t writeEncript[] = {COMMAND, SIZE_WRITE_DATA, COMMAND_WRITE, 0x82, 0x00, 0x00 , 0xA0, 0xA1, 0xA2, 0xA3, 0xA4,
+	0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xA0, 0xA1,
+	0xA2, 0xA3,	0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9,  0x15, 0xA9};
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, writeEncript, sizeof(writeEncript), 1000);
+	HAL_Delay(5);
+*/
+}
+
+void ReadEncript(uint8_t *readEncript, uint16_t size, uint8_t *data){
 
 	// NONCE command: {COMMAND, COUNT, OPCODE, Param1, 0x00, 0x00, NumIn, CRC_LSB, CRC_MSB}
 	uint8_t noncecommand[] = {COMMAND, SIZE_WRITE_NONCE, COMMAND_NONCE, 0x00 , 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04,
 	0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01,
 	0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,  0xb9, 0x03};
-
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, noncecommand, sizeof(noncecommand), 1000);
 	HAL_Delay(5);
 
 	// GENDIG command: {COMMAND, COUNT, OPCODE, ZONE, SLOTID_LSB, SLOTID_MSB, CRC_LSB, CRC_MSB}
 	uint8_t GenDig[] = {COMMAND, SIZE_WRITE_GENDIG, COMMAND_GENDIG, 0x02, 0x00, 0x00, 0x30, 0x08};
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, GenDig, sizeof(GenDig), 1000);
+	HAL_Delay(5);
 
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, readEncript, 8, 1000); 		    // Send read encript command
+	HAL_Delay(5);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data, size, 1000);
+	HAL_Delay(5);
 }
 
 /*

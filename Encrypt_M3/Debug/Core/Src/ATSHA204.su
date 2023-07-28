@@ -7,3 +7,5 @@
 ../Core/Src/ATSHA204.c:289:6:BlockDataZone	24	static
 ../Core/Src/ATSHA204.c:298:6:ReadDataZone	32	static
 ../Core/Src/ATSHA204.c:306:6:WriteData	64	static
+../Core/Src/ATSHA204.c:324:6:WriteEncript	104	static
+../Core/Src/ATSHA204.c:357:6:ReadEncript	88	static
