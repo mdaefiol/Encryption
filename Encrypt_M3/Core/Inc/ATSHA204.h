@@ -23,7 +23,7 @@
 #define SIZE_WRITE_OTP			0x0A
 #define SIZE_WRITE_CONFIG		0x0B
 #define SIZE_BLOCK_CONFIG		0x07
-#define SIZE_WRITE_NONCE		0x25
+#define SIZE_WRITE_NONCE		0x1B
 #define SIZE_WRITE_GENDIG		0x07
 #define ZONE_CONFIG_LOCK 		0x00
 #define ZONE_DATA_LOCK 			0x81
@@ -66,10 +66,14 @@ void WriteDataZone(void);
 void WriteOTPZone(void);
 void BlockDataZone(void);
 void WriteData(void);
-void WriteEncript(uint16_t size, uint8_t *data);
 
 void ReadDataZone(uint8_t *readData, uint16_t size, uint8_t *data);
 void ReadEncript(uint8_t *readEncript, uint16_t size, uint8_t *data);
+void WriteEncript(void);
+
+void CommandNonce(uint8_t *data, uint16_t size);
+void GendigCommand(uint8_t *data, uint16_t size);
+void SHACommand(uint8_t *data, uint16_t size);
 
 //void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) ;
 

@@ -102,13 +102,17 @@ int main(void)
   uint8_t readCommand6[8] = {0x03, 0x07, 0x02, 0x00, 0x14, 0x00, 0x1e, 0xdd};
   uint8_t readCommand7[8] = {0x03, 0x07, 0x02, 0x00, 0x15, 0x00, 0x17, 0x5d};
 
-  uint8_t readData0[8] = {COMMAND, SIZE_BLOCK_CONFIG, ZONE_DATA, 0x82, 0x70, 0x00, 0x09, 0x8c};
-  uint8_t readData1[8] = {COMMAND, SIZE_BLOCK_CONFIG, ZONE_DATA, 0x82, 0x00, 0x00, 0x0a, 0x28};
+  uint8_t readData0[8] = {0x03, 0x07, 0x02, 0x82, 0x70, 0x00, 0x09, 0x8c};
+  uint8_t readWritePWD[8] = {0x03, 0x07, 0x02, 0x82, 0x00, 0x00, 0x0a, 0x28};
 
   uint8_t receiv_MASTERKEY[35] = {0};
+
+  uint8_t nonce_receiv[35] = {0};
+  uint8_t SHA_receiv[64] = {0};
+  uint8_t gendig_receiv[1] = {0};
   uint8_t receiv_WritePWD1[35] = {0};
 
-  uint8_t test[35] = {0};
+
   uint8_t read_byte[4];
   uint8_t receiv_ack[1] = {0};
 
@@ -140,11 +144,13 @@ int main(void)
 	  ReadConfig(readCommand1, 35, read_config1);
 	  ReadConfig(readCommand7, 4, read_config7);
 	  //WriteDataZone();
-	  WriteData();
-	  BlockConfigZone(receiv_ack);
+	  //WriteData();
+	  //BlockConfigZone(receiv_ack);
 	  ReadDataZone(readData0, 35, receiv_MASTERKEY);
-	  WriteEncript(test, 35);
-	//  ReadEncript(readData1, 35, receiv_WritePWD1);
+	  CommandNonce(nonce_receiv, 35);
+	  //GendigCommand(gendig_receiv, 1);
+	  SHACommand(SHA_receiv, 64);
+	  //ReadEncript(readWritePWD, 35, receiv_WritePWD1);
 	  HAL_Delay(10);
 
     /* USER CODE END WHILE */
