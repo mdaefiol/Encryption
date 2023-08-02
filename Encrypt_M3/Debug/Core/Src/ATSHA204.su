@@ -7,8 +7,9 @@
 ../Core/Src/ATSHA204.c:291:6:BlockDataZone	24	static
 ../Core/Src/ATSHA204.c:301:6:ReadDataZone	32	static
 ../Core/Src/ATSHA204.c:309:6:WriteData	64	static
-../Core/Src/ATSHA204.c:327:6:CommandNonce	64	static
-../Core/Src/ATSHA204.c:342:6:GendigCommand	32	static
-../Core/Src/ATSHA204.c:351:6:SHACommand	32	static
-../Core/Src/ATSHA204.c:361:6:ReadEncript	32	static
-../Core/Src/ATSHA204.c:370:6:WriteEncript	64	static
+../Core/Src/ATSHA204.c:327:6:CommandNonce	72	static
+../Core/Src/ATSHA204.c:346:6:GendigCommand	32	static
+../Core/Src/ATSHA204.c:355:6:SHACommandInit	32	static
+../Core/Src/ATSHA204.c:365:6:SHACommandCompute	96	static
+../Core/Src/ATSHA204.c:379:6:ReadEncript	32	static
+../Core/Src/ATSHA204.c:388:6:WriteEncript	64	static

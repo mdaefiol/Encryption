@@ -108,7 +108,8 @@ int main(void)
   uint8_t receiv_MASTERKEY[35] = {0};
 
   uint8_t nonce_receiv[35] = {0};
-  uint8_t SHA_receiv[64] = {0};
+  uint8_t sha_init[1] = {0};
+  uint8_t SHA_receiv[35] = {0};
   uint8_t gendig_receiv[1] = {0};
   uint8_t receiv_WritePWD1[35] = {0};
 
@@ -146,11 +147,15 @@ int main(void)
 	  //WriteDataZone();
 	  //WriteData();
 	  //BlockConfigZone(receiv_ack);
+
 	  ReadDataZone(readData0, 35, receiv_MASTERKEY);
 	  CommandNonce(nonce_receiv, 35);
+	  SHACommandInit(sha_init, 1);
+	  SHACommandCompute(SHA_receiv, 35);
+
 	  //GendigCommand(gendig_receiv, 1);
-	  SHACommand(SHA_receiv, 64);
 	  //ReadEncript(readWritePWD, 35, receiv_WritePWD1);
+
 	  HAL_Delay(10);
 
     /* USER CODE END WHILE */

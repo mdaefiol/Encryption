@@ -73,7 +73,8 @@ void WriteEncript(void);
 
 void CommandNonce(uint8_t *data, uint16_t size);
 void GendigCommand(uint8_t *data, uint16_t size);
-void SHACommand(uint8_t *data, uint16_t size);
+void SHACommandInit(uint8_t *data, uint16_t size);
+void SHACommandCompute(uint8_t *data, uint16_t size);
 
 //void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) ;
 
