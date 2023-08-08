@@ -73,7 +73,8 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+
+	HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -93,25 +94,39 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   // read configuration zone: {COMMAND, COUNT, OPCODE, ZONE, ADDRESS_1, ADDRESS_2, CRC_LSB, CRC_MSB}
-  uint8_t readCommand0[8] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD}; // read -> param1 = zone = 1000 0000
-  uint8_t readCommand1[8] = {0x03, 0x07, 0x02, 0x80, 0x08, 0x00, 0x0a, 0x4d}; // read -> param1 = zone = 1000 0000
-  uint8_t readCommand2[8] = {0x03, 0x07, 0x02, 0x00, 0x10, 0x00, 0x1d, 0x9d}; // read -> param1 = zone = 1000 0000
+  uint8_t readCommand0[8] = {0x03, 0x07, 0x02, 0x80, 0x00, 0x00, 0x09, 0xAD};
+  uint8_t readCommand1[8] = {0x03, 0x07, 0x02, 0x80, 0x08, 0x00, 0x0a, 0x4d};
+  uint8_t readCommand2[8] = {0x03, 0x07, 0x02, 0x00, 0x10, 0x00, 0x1d, 0x9d};
   uint8_t readCommand3[8] = {0x03, 0x07, 0x02, 0x00, 0x11, 0x00, 0x14, 0x1d};
   uint8_t readCommand4[8] = {0x03, 0x07, 0x02, 0x00, 0x12, 0x00, 0x1b, 0x1d};
   uint8_t readCommand5[8] = {0x03, 0x07, 0x02, 0x00, 0x13, 0x00, 0x12, 0x9d};
   uint8_t readCommand6[8] = {0x03, 0x07, 0x02, 0x00, 0x14, 0x00, 0x1e, 0xdd};
   uint8_t readCommand7[8] = {0x03, 0x07, 0x02, 0x00, 0x15, 0x00, 0x17, 0x5d};
 
-  uint8_t readData0[8] = {0x03, 0x07, 0x02, 0x82, 0x70, 0x00, 0x09, 0x8c};
-  uint8_t readWritePWD[8] = {0x03, 0x07, 0x02, 0x82, 0x00, 0x00, 0x0a, 0x28};
+  uint8_t readMASTERKEY[8] = {0x03, 0x07, 0x02, 0x82, 0x70, 0x00, 0x09, 0x8c};
+  uint8_t readDATA0[8] = {0x03, 0x07, 0x02, 0x82, 0x10, 0x00, 0x09, 0x98};
+  uint8_t readDATA2[8] = {0x03, 0x07, 0x02, 0x82, 0x50, 0x00, 0x0a, 0x14};
+
+  uint8_t temp_nonce[] = {};
 
   uint8_t receiv_MASTERKEY[35] = {0};
 
+
+  // NONCE
+  uint8_t NumIn [20] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
+		  	  	  	  	 0x06, 0x07, 0x08, 0x09, 0x00};
   uint8_t nonce_receiv[35] = {0};
+
+  // SHA-256
   uint8_t sha_init[1] = {0};
   uint8_t SHA_receiv[35] = {0};
-  uint8_t gendig_receiv[1] = {0};
-  uint8_t receiv_WritePWD1[35] = {0};
+
+  // GENDIG
+  uint8_t gendig_receiv[4] = {0};
+
+
+
+  uint8_t receiv_DATA2[35] = {0};
 
 
   uint8_t read_byte[4];
@@ -128,6 +143,7 @@ int main(void)
   uint8_t read_config7[7] = {0};
   uint8_t read_config8[7] = {0};
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -136,25 +152,30 @@ int main(void)
   {
 	  WakeUp(read_byte);
 	 // WriteConfigZone();
-	 // BlockConfigZone(receiv_ack);
+	  BlockConfigZone(receiv_ack);
 	 // WriteDataZone();
 	 // WriteOTPZone();
-	 // BlockDataZone();
+	  BlockDataZone();
 
 	  ReadConfig(readCommand0, 35, read_config0);
 	  ReadConfig(readCommand1, 35, read_config1);
-	  ReadConfig(readCommand7, 4, read_config7);
-	  //WriteDataZone();
-	  //WriteData();
-	  //BlockConfigZone(receiv_ack);
+	  ReadConfig(readCommand2, 7, read_config2);
+	  ReadConfig(readCommand3, 7, read_config3);
+	  ReadConfig(readCommand4, 7, read_config4);
+	  ReadConfig(readCommand5, 7, read_config5);
+	  ReadConfig(readCommand6, 7, read_config6);
+	  ReadConfig(readCommand7, 7, read_config7);
 
-	  ReadDataZone(readData0, 35, receiv_MASTERKEY);
-	  CommandNonce(nonce_receiv, 35);
-	  SHACommandInit(sha_init, 1);
-	  SHACommandCompute(SHA_receiv, 35);
 
-	  //GendigCommand(gendig_receiv, 1);
-	  //ReadEncript(readWritePWD, 35, receiv_WritePWD1);
+	  ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
+	  CommandNonce(NumIn, 35, nonce_receiv);
+	  //SHACommandInit(sha_init, 1);
+	  //SHACommandCompute(SHA_receiv, 35);
+
+	  GendigCommand(gendig_receiv, 4);
+	  ReadEncript(readDATA2, 35, receiv_DATA2);
+
+	 // TempKeyGen(nonce_receiv, 55 );
 
 	  HAL_Delay(10);
 

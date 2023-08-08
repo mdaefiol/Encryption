@@ -45,9 +45,13 @@
 #define COMMAND_UPDATE_EXTRA    0x20
 #define COMMAND_WRITE           0x12
 
+#define NONCE_MODE0 			0x00
+#define NONCE_MODE1 			0x01
+#define NONCE_MODE3 			0x03
+
 // Definir os códigos de zonas do ATSHA204A
-#define ZONE_CONFIG 0x00 			// Zona de configuração
-#define ZONE_DATA 	0x02 			// Zona de dados
+#define ZONE_CONFIG 			0x00 	 // Zona de configuração
+#define ZONE_DATA 				0x02 	 // Zona de dados
 
 // Definir as configurações de slot do ATSHA204A
 #define SLOT_CONFIG_SECRET      	0x03 // Configuração de slot para chave secreta
@@ -58,6 +62,8 @@
 #define ZONE_LOCK_CONFIG_UNLOCKED 	0x00 // Zona desbloqueada
 
 
+void atCRC( uint8_t *data, uint8_t length);
+
 void WakeUp(uint8_t *data_rec);
 void ReadConfig(uint8_t *readCommand, uint16_t size, uint8_t *data_config);
 void WriteConfigZone(void);
@@ -65,17 +71,18 @@ void BlockConfigZone(uint8_t *receiv_byte);
 void WriteDataZone(void);
 void WriteOTPZone(void);
 void BlockDataZone(void);
-void WriteData(void);
-
 void ReadDataZone(uint8_t *readData, uint16_t size, uint8_t *data);
+
 void ReadEncript(uint8_t *readEncript, uint16_t size, uint8_t *data);
 void WriteEncript(void);
 
-void CommandNonce(uint8_t *data, uint16_t size);
+void CommandNonce(uint8_t NumIn, uint16_t size, uint8_t *data);
 void GendigCommand(uint8_t *data, uint16_t size);
 void SHACommandInit(uint8_t *data, uint16_t size);
 void SHACommandCompute(uint8_t *data, uint16_t size);
 
+void TempKeyGen(uint8_t *data,  uint16_t size_int, uint16_t size_out, uint8_t *receive, uint8_t *NumIn);
 //void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) ;
+
 
 #endif /* INC_ATSHA204_H_ */
