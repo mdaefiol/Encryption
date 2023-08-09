@@ -1,0 +1,16 @@
+../Core/Src/ATSHA204.c:5:6:atCRC	32	static
+../Core/Src/ATSHA204.c:73:6:WakeUp	32	static
+../Core/Src/ATSHA204.c:92:6:ReadConfig	32	static
+../Core/Src/ATSHA204.c:101:6:WriteConfigZone	112	static
+../Core/Src/ATSHA204.c:154:6:BlockConfigZone	32	static
+../Core/Src/ATSHA204.c:166:6:WriteDataZone	664	static
+../Core/Src/ATSHA204.c:252:6:WriteOTPZone	40	static
+../Core/Src/ATSHA204.c:280:6:BlockDataZone	24	static
+../Core/Src/ATSHA204.c:291:6:ReadDataZone	32	static
+../Core/Src/ATSHA204.c:300:6:CommandNonce	64	static
+../Core/Src/ATSHA204.c:327:6:GendigCommand	32	static
+../Core/Src/ATSHA204.c:340:6:SHACommandInit	40	static
+../Core/Src/ATSHA204.c:356:6:SHACommandCompute	112	static
+../Core/Src/ATSHA204.c:383:6:TempKeyGen	72	dynamic
+../Core/Src/ATSHA204.c:416:6:ReadEncript	32	static
+../Core/Src/ATSHA204.c:426:6:WriteEncript	64	static

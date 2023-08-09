@@ -2,31 +2,6 @@
 
 extern I2C_HandleTypeDef hi2c2;
 
-void atCRC(uint8_t *data, uint8_t length)
-{
-    uint8_t counter;
-    uint16_t crc_register = 0;
-    uint16_t polynom = 0x8005;
-    uint8_t shift_register;
-    uint8_t data_bit, crc_bit;
-
-    for (counter = 1; counter < (length - 2); counter++)
-    {
-        for (shift_register = 0x01; shift_register > 0x00; shift_register <<= 1)
-        {
-            data_bit = (data[counter] & shift_register) ? 1 : 0;
-            crc_bit = crc_register >> 15;
-            crc_register <<= 1;
-            if (data_bit != crc_bit)
-            {
-                crc_register ^= polynom;
-            }
-        }
-    }
-    data[length - 2 ] = (uint8_t)(crc_register & 0x00FF);
-    data[length - 1] = (uint8_t)(crc_register >> 8);
-}
-
 // command packet: 8.5.1
 // 6.2.1: Word Address Value: COMMAND == 0x03
 // read command: 8.5.15
@@ -70,7 +45,33 @@ uint8_t DATA4[] = 		{0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9,
 						 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9};
 
 
-void WakeUp(uint8_t *data_rec){
+void atCRC(uint8_t *data, uint8_t size)
+{
+    uint8_t counter;
+    uint16_t crc_register = 0;
+    uint16_t polynom = 0x8005;
+    uint8_t shift_register;
+    uint8_t data_bit, crc_bit;
+
+    for (counter = 1; counter < (size - 2); counter++)
+    {
+        for (shift_register = 0x01; shift_register > 0x00; shift_register <<= 1)
+        {
+            data_bit = (data[counter] & shift_register) ? 1 : 0;
+            crc_bit = crc_register >> 15;
+            crc_register <<= 1;
+            if (data_bit != crc_bit)
+            {
+                crc_register ^= polynom;
+            }
+        }
+    }
+    data[size - 2] = (uint8_t)(crc_register & 0x00FF);
+    data[size - 1] = (uint8_t)(crc_register >> 8);
+}
+
+
+void WakeUp(uint8_t *receiv){
 
 	uint8_t data = 0;
 
@@ -84,16 +85,16 @@ void WakeUp(uint8_t *data_rec){
 	// Read 88bytes
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, &data, sizeof(data), 1000);		// Send 1 byte
 	HAL_Delay(5);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data_rec, 4, 1000); 		    	// Receiv: 0x04, 0x11, 0x33, 0x43.
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, 4, 1000); 		    	// Receiv: 0x04, 0x11, 0x33, 0x43.
 	HAL_Delay(5);
 }
 
 
-void ReadConfig(uint8_t *readCommand, uint16_t size, uint8_t *data_config) {
+void ReadConfig(uint8_t *data, uint16_t size, uint8_t *receiv) {
 
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, readCommand, 8, 1000); 		    // Send read command
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, data, 8, 1000); 		    // Send read command
 	HAL_Delay(5);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data_config, size, 1000); 	        // Receive: data packet size, 0x01 0x23..., CRC_LSB, CRC_MSB
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000); 	        // Receive: data packet size, 0x01 0x23..., CRC_LSB, CRC_MSB
 	HAL_Delay(5);
 }
 
@@ -151,14 +152,14 @@ void WriteConfigZone(void){
 }
 
 
-void BlockConfigZone(uint8_t *receiv_byte){
+void BlockConfigZone(uint8_t *receiv){
 
 	// Lock command: {COMMAND, COUNT, OPCODE, ZONE, CRC_88_LSB,  CRC_88_MSB, CRC_LSB, CRC_MSB}
 	uint8_t blockConfig[] = { COMMAND, SIZE_BLOCK_CONFIG, COMMAND_LOCK, ZONE_CONFIG_LOCK, 0xb5, 0x0b,/*0xc4, 0xe1*/ 0x00, 0x00};
 	atCRC(blockConfig,sizeof(blockConfig));
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, blockConfig, sizeof(blockConfig), 1000);
 	HAL_Delay(5);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv_byte, 1, 1000);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, 1, 1000);
 	HAL_Delay(5);
 }
 
@@ -251,75 +252,35 @@ void WriteDataZone(void){
 
 void WriteOTPZone(void){
 
+	uint8_t writeOTP[11];
+	uint8_t adress = 0x00;
+	uint8_t OTP_Zone[4] = {0x01, 0x02, 0x03, 0x04};
 	// Write OTP command: {COMMAND, COUNT, OPCODE, ZONE, ADRESS, DADOS, CRC1, CRC2}
-	uint8_t writeOTP0[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x00, 0x01, 0x02, 0x03,0x04, 0x05, 0x48};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP0, sizeof(writeOTP0), 1000);
-	HAL_Delay(5);
 
-	uint8_t writeOTP1[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x01, 0x01, 0x02, 0x03,0x04, 0x06, 0xf4};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP1, sizeof(writeOTP1), 1000);
-	HAL_Delay(5);
+	for (uint8_t i = 0; i < 0x10; i++){
 
-	uint8_t writeOTP2[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x02, 0x01, 0x02, 0x03,0x04, 0x06, 0xd6};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP2, sizeof(writeOTP2), 1000);
-	HAL_Delay(5);
+		writeOTP[0] = COMMAND;
+		writeOTP[1] = SIZE_WRITE_OTP;
+		writeOTP[2] = COMMAND_WRITE;
+		writeOTP[3] = ZONE_OTP;
+		writeOTP[4] = adress + i;
 
-	uint8_t writeOTP3[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x03, 0x01, 0x02, 0x03, 0x04, 0x05, 0x6a};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP3, sizeof(writeOTP3), 1000);
-	HAL_Delay(5);
+		for(uint8_t j = 0; j < 5; j++){
+			writeOTP[6 + j] = OTP_Zone[j];
+		}
 
-	uint8_t writeOTP4[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x04, 0x01, 0x02, 0x03, 0x04, 0x06, 0xc7};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP4, sizeof(writeOTP4), 1000);
-	HAL_Delay(5);
+		writeOTP[sizeof(writeOTP) - 2] = 0x00;
+		writeOTP[sizeof(writeOTP) - 1] = 0x00;
 
-	uint8_t writeOTP5[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x05, 0x01, 0x02, 0x03, 0x04, 0x05, 0x7b};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP5, sizeof(writeOTP5), 1000);
-	HAL_Delay(5);
-
-	uint8_t writeOTP6[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x59};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP6, sizeof(writeOTP6), 1000);
-	HAL_Delay(5);
-
-	uint8_t writeOTP7[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x07, 0x01, 0x02, 0x03, 0x04, 0x06, 0xe5};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP7, sizeof(writeOTP7), 1000);
-	HAL_Delay(5);
-
-	uint8_t writeOTP8[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x08, 0x01, 0x02, 0x03, 0x04, 0x86, 0xcf};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP8, sizeof(writeOTP8), 1000);
-	HAL_Delay(5);
-
-	uint8_t writeOTP9[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x09, 0x01, 0x02, 0x03, 0x04, 0x85, 0x73};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP9, sizeof(writeOTP9), 1000);
-	HAL_Delay(5);
-
-	uint8_t writeOTP10[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0A, 0x01, 0x02, 0x03, 0x04, 0x85, 0x51};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP10, sizeof(writeOTP10), 1000);
-	HAL_Delay(5);
-
-	uint8_t writeOTP11[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0B, 0x01, 0x02, 0x03, 0x04, 0x86, 0xed};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP11, sizeof(writeOTP11), 1000);
-	HAL_Delay(5);
-
-	uint8_t writeOTP12[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0C, 0x01, 0x02, 0x03, 0x04, 0x85, 0x40};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP12, sizeof(writeOTP12), 1000);
-	HAL_Delay(5);
-
-	uint8_t writeOTP13[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0D, 0x01, 0x02, 0x03, 0x04, 0x86, 0xfc};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP13, sizeof(writeOTP13), 1000);
-	HAL_Delay(5);
-
-	uint8_t writeOTP14[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0E, 0x01, 0x02, 0x03, 0x04, 0x86, 0xde};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP14, sizeof(writeOTP14), 1000);
-	HAL_Delay(5);
-
-	uint8_t writeOTP15[] = {COMMAND, SIZE_WRITE_OTP, COMMAND_WRITE, 0x01, 0x0F, 0x01, 0x02, 0x03, 0x04, 0x85, 0x62};
-	HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP15, sizeof(writeOTP15), 1000);
-	HAL_Delay(5);
+		atCRC(writeOTP,sizeof(writeOTP));
+		HAL_I2C_Master_Transmit(&hi2c2, 0xC8, writeOTP, sizeof(writeOTP), 1000);
+		HAL_Delay(5);
+	}
 }
 
 void BlockDataZone(void){
 
-	// Lock command: {COMMAND, COUNT, OPCODE, ZONE, CRC_DATA_OTP_LSB,   CRC_DATA_OTP_MSB, CRC_LSB, CRC_MSB}
+	// Lock command: {COMMAND, COUNT, OPCODE, ZONE, CRC_DATA_OTP_LSB, CRC_DATA_OTP_MSB, CRC_LSB, CRC_MSB}
 	//Data and OTP Zone: Seus conteúdos são concatenados nessa ordem para criar a entrada para o algoritmo CRC
 	uint8_t blockConfig[] = { COMMAND, SIZE_BLOCK_CONFIG, COMMAND_LOCK, ZONE_DATA_LOCK, 0x04, 0x58, /*0x66, 0xc7*/ 0x00, 0x00};
 	atCRC(blockConfig,sizeof(blockConfig));
@@ -328,77 +289,137 @@ void BlockDataZone(void){
 }
 
 
-void ReadDataZone(uint8_t *readData, uint16_t size, uint8_t *data) {
+void ReadDataZone(uint8_t *data, uint16_t size, uint8_t *receiv) {
 
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, readData, 8, 1000); 		    // Send read command
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, data, 8, 1000);
 	HAL_Delay(5);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data, size, 1000);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
 
 
-void CommandNonce(uint8_t NumIn, uint16_t size, uint8_t *data){
+void CommandNonce(uint8_t *NumIn, uint16_t size, uint8_t *receiv){ //OK
 
-	// NONCE command: {COMMAND, COUNT, OPCODE, Param1_mode, 0x00, 0x00, NumIn, CRC_LSB, CRC_MSB}
-	uint8_t NumIn_receiv[] = {0};
-	for(uint8_t i; i < 21; i++){
-		NumIn[i] = NumIn_receiv[i];
+	// NONCE command: {COMMAND, COUNT, OPCODE, Param1_mode, 0x00, 0x00, NumIn[20], CRC_LSB, CRC_MSB}
+	uint8_t noncecommand[28];
 
+	for(uint8_t i = 0; i < 21; i++){
+		 noncecommand[6 + i] = NumIn[i];
 	}
-	uint8_t noncecommand[] = {COMMAND, SIZE_WRITE_NONCE, COMMAND_NONCE, NONCE_MODE0, 0x00, 0x00, NumIn_receiv, /*0xca, 0x4f*/ 0x00, 0x00};
+
+    noncecommand[0] = COMMAND;
+    noncecommand[1] = SIZE_WRITE_NONCE;
+    noncecommand[2] = COMMAND_NONCE;
+    noncecommand[3] = NONCE_MODE0;
+    noncecommand[4] = 0x00;
+    noncecommand[5] = 0x00;
+    noncecommand[sizeof(noncecommand) - 2] = 0x00;
+    noncecommand[sizeof(noncecommand) - 1] = 0x00;
+
 	atCRC(noncecommand,sizeof(noncecommand));
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, noncecommand, sizeof(noncecommand), 1000);
-	HAL_Delay(70);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data, size, 1000);
+	HAL_Delay(50);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(10);
 }
 
 
-void GendigCommand(uint8_t *data, uint16_t size){
+void GendigCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t size, uint8_t *receiv){
+
 	// GENDIG command: {COMMAND, COUNT, OPCODE, ZONE_DATA, SLOTID_LSB, SLOTID_MSB, CRC_LSB, CRC_MSB}
-	uint8_t GenDig[] = {COMMAND, SIZE_WRITE_GENDIG, COMMAND_GENDIG, 0x02, 0x08, 0x00, /*0x33, 0xe8*/ 0x00, 0x00};
+	uint8_t GenDig[] = {COMMAND, SIZE_WRITE_GENDIG, COMMAND_GENDIG, ZONE_DATA, SlotID_LSB, SlotID_MSB, /*0x33, 0xe8*/ 0x00, 0x00};
 	atCRC(GenDig,sizeof(GenDig));
+
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, GenDig, sizeof(GenDig), 1000);
 	HAL_Delay(50);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data, size, 1000);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
 
 
-void SHACommandInit(uint8_t *data, uint16_t size){
+void SHACommandInit(uint16_t size, uint8_t *receiv){
 
 	// SHA command: {COMMAND, COUNT, OPCODE, Param1(Mode), Param2 (0x00, 0x00), CRC_LSB, CRC_MSB}
-	uint8_t SHA[] = {COMMAND, 0x07, COMMAND_SHA, 0x00, 0x00, 0x00, /*0x2e, 0x85*/ 0x00, 0x00};
+	uint8_t Param2_1 = 0x00;
+	uint8_t Param2_2 = 0x00;
+
+	uint8_t SHA[] = {COMMAND, 0x07, COMMAND_SHA, SHA_INIT, Param2_1, Param2_2, /*0x2e, 0x85*/ 0x00, 0x00};
 	atCRC(SHA,sizeof(SHA));
+
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, SHA, sizeof(SHA), 1000);
 	HAL_Delay(30);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data, size, 1000);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
 
 
-void SHACommandCompute(uint8_t *data, uint16_t size){
+void SHACommandCompute(uint8_t *data, uint8_t size, uint8_t *receiv){
 
-	// SHA command: {COMMAND, COUNT, OPCODE, Param1(Mode), Param2 (0x00, 0x00), CRC_LSB, CRC_MSB}
-	uint8_t SHA[] = {COMMAND, 0x47, COMMAND_SHA, 0x01, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x02, 0x03,
-	0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-	0x07, 0x08, 0x09, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
-	0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00,  /*0xea, 0x92*/ 0x00, 0x00};
-	atCRC(SHA,sizeof(SHA));
+	// SHA command: {COMMAND, COUNT, OPCODE, Param1(Mode), Param2 (0x00, 0x00), [data], CRC_LSB, CRC_MSB}
+	uint8_t SHA[72];
+
+	SHA[0] = COMMAND;
+	SHA[1] = 0x47;
+	SHA[2] = COMMAND_SHA;
+	SHA[3] = SHA_COMPUTE;
+	SHA[4] = 0x00;
+	SHA[5] = 0x00;
+
+	for (uint8_t i = 0; i < 35; i++) {
+		 SHA[i+6] = data[i];
+	}
+
+	SHA[sizeof(SHA) - 2] = 0x00;
+	SHA[sizeof(SHA) - 1] = 0x00;
+	atCRC(SHA, sizeof(SHA));
+
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, SHA, sizeof(SHA), 1000);
 	HAL_Delay(30);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data, size, 1000);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
 
 
-void ReadEncript(uint8_t *readEncript, uint16_t size, uint8_t *data){
+void TempKeyGen(uint8_t *data, uint8_t *NumIn, uint8_t mode, uint8_t size_in, uint8_t size_out, uint8_t *receive){
+
+	 uint8_t op_mode;
+	 op_mode = mode;
+	// Tempkey [] = {RandOut, NumIn_receiv, COMMAND_NONCE, NONCE_MODE0, LSB_Param, CRC_LSB, CRC_MSB};
+	uint8_t Tempkey[size_in];
+	uint8_t LSB_Param = 0x00;
+
+	// op_mode = 0x00 -> nonce_gen ; 0x01 -> gendig_gen
+	if (op_mode == 0) {
+		for (uint8_t i = 0; i < 33; i++) {
+    		Tempkey[i] = data[i+1];
+    	}
+
+		for (uint8_t i = 0; i < 21; i++){
+			Tempkey[33 + i] = NumIn[i];
+		}
+	}
+
+	Tempkey[sizeof(Tempkey) - 5] = COMMAND_NONCE ;
+	Tempkey[sizeof(Tempkey) - 4] = NONCE_MODE0;
+	Tempkey[sizeof(Tempkey) - 3] = LSB_Param;
+	Tempkey[sizeof(Tempkey) - 2] = 0x00;
+	Tempkey[sizeof(Tempkey) - 1] = 0x00;
+
+	atCRC(Tempkey,sizeof(Tempkey));
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, Tempkey, size_in, 1000);
+	HAL_Delay(30);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receive, size_out, 1000);
+	HAL_Delay(5);
+}
+
+
+void ReadEncript(uint8_t *data, uint16_t size, uint8_t *receiv){
 
 	// Read Encript
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, readEncript, 8, 1000); // Send read encript command
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, data, 8, 1000); // Send read encript command
 	HAL_Delay(5);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, data, size, 1000);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
 
@@ -409,26 +430,8 @@ void WriteEncript(void){
 	uint8_t writeEncript[] = {COMMAND, SIZE_WRITE_DATA, COMMAND_WRITE, 0x82, 0x00, 0x00 , 0xA0, 0xA1, 0xA2, 0xA3, 0xA4,
 	0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xA0, 0xA1,
 	0xA2, 0xA3,	0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9,  /*0x15, 0xA9*/ 0x00, 0x00};
+
 	atCRC(writeEncript,sizeof(writeEncript));
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, writeEncript, sizeof(writeEncript), 1000);
 	HAL_Delay(5);
 }
-
-
-void TempKeyGen(uint8_t *data,  uint16_t size_int, uint16_t size_out, uint8_t *receive, uint8_t *NumIn){
-
-	uint8_t RandOut[] = {0};
-	uint8_t NumIn_receiv[] = {0};
-	uint8_t LSB_Param[1] = {0x00};
-
-	*data = RandOut;
-	*NumIn = NumIn_receiv;
-
-	uint8_t Tempkey [] = {RandOut, NumIn_receiv, COMMAND_NONCE, NONCE_MODE0, LSB_Param} ;
-
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, Tempkey, size_int, 1000);
-	HAL_Delay(5);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receive, size_out, 1000);
-	HAL_Delay(5);
-}
-

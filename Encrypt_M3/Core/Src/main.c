@@ -113,9 +113,11 @@ int main(void)
 
 
   // NONCE
-  uint8_t NumIn [20] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
-		  	  	  	  	 0x06, 0x07, 0x08, 0x09, 0x00};
+  uint8_t NumIn[20]= {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00,
+		  	  	  	  0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00};
   uint8_t nonce_receiv[35] = {0};
+  uint8_t tempnonce[35] = {0};
+
 
   // SHA-256
   uint8_t sha_init[1] = {0};
@@ -123,8 +125,6 @@ int main(void)
 
   // GENDIG
   uint8_t gendig_receiv[4] = {0};
-
-
 
   uint8_t receiv_DATA2[35] = {0};
 
@@ -166,16 +166,15 @@ int main(void)
 	  ReadConfig(readCommand6, 7, read_config6);
 	  ReadConfig(readCommand7, 7, read_config7);
 
-
 	  ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
-	  CommandNonce(NumIn, 35, nonce_receiv);
-	  //SHACommandInit(sha_init, 1);
-	  //SHACommandCompute(SHA_receiv, 35);
+	  //CommandNonce(NumIn, 35, nonce_receiv);
+	  TempKeyGen(nonce_receiv, NumIn, 0, 55, 35, tempnonce);
+	  //GendigCommand(0x08, 0x00, 4, gendig_receiv);
 
-	  GendigCommand(gendig_receiv, 4);
-	  ReadEncript(readDATA2, 35, receiv_DATA2);
+	  //SHACommandInit(1, sha_init);
+	  //SHACommandCompute(35, SHA_receiv);
 
-	 // TempKeyGen(nonce_receiv, 55 );
+	  //ReadEncript(readDATA2, 35, receiv_DATA2);
 
 	  HAL_Delay(10);
 

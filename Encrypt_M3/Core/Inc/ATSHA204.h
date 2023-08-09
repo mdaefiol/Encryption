@@ -29,6 +29,9 @@
 #define ZONE_DATA_LOCK 			0x81
 #define ZONE_DATA_READ         	0x82
 
+#define SHA_INIT				0x00
+#define SHA_COMPUTE 			0x01
+
 // Definir os códigos de comando do ATSHA204A
 #define COMMAND_CHECKMAC        0x28
 #define COMMAND_DERIVE_KEY      0x1C
@@ -51,6 +54,7 @@
 
 // Definir os códigos de zonas do ATSHA204A
 #define ZONE_CONFIG 			0x00 	 // Zona de configuração
+#define ZONE_OTP				0x01	 // Zona OTP
 #define ZONE_DATA 				0x02 	 // Zona de dados
 
 // Definir as configurações de slot do ATSHA204A
@@ -62,27 +66,26 @@
 #define ZONE_LOCK_CONFIG_UNLOCKED 	0x00 // Zona desbloqueada
 
 
-void atCRC( uint8_t *data, uint8_t length);
+void atCRC(uint8_t *data, uint8_t size);
 
-void WakeUp(uint8_t *data_rec);
-void ReadConfig(uint8_t *readCommand, uint16_t size, uint8_t *data_config);
+void WakeUp(uint8_t *receiv);
+void ReadConfig(uint8_t *data, uint16_t size, uint8_t *receiv) ;
 void WriteConfigZone(void);
-void BlockConfigZone(uint8_t *receiv_byte);
+void BlockConfigZone(uint8_t *receiv);
 void WriteDataZone(void);
 void WriteOTPZone(void);
 void BlockDataZone(void);
-void ReadDataZone(uint8_t *readData, uint16_t size, uint8_t *data);
+void ReadDataZone(uint8_t *data, uint16_t size, uint8_t *receiv);
+
+void CommandNonce(uint8_t *NumIn, uint16_t size, uint8_t *receiv);
+void GendigCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t size, uint8_t *receiv);
+
+void SHACommandInit(uint16_t size, uint8_t *receiv);
+void SHACommandCompute(uint8_t *data, uint8_t size, uint8_t *receiv);
+
+void TempKeyGen(uint8_t *data, uint8_t *NumIn, uint8_t mode, uint8_t size_in, uint8_t size_out, uint8_t *receive);
+//void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) ;
 
 void ReadEncript(uint8_t *readEncript, uint16_t size, uint8_t *data);
 void WriteEncript(void);
-
-void CommandNonce(uint8_t NumIn, uint16_t size, uint8_t *data);
-void GendigCommand(uint8_t *data, uint16_t size);
-void SHACommandInit(uint8_t *data, uint16_t size);
-void SHACommandCompute(uint8_t *data, uint16_t size);
-
-void TempKeyGen(uint8_t *data,  uint16_t size_int, uint16_t size_out, uint8_t *receive, uint8_t *NumIn);
-//void sha204c_calculate_crc(uint8_t length, uint8_t *data, uint8_t *crc) ;
-
-
 #endif /* INC_ATSHA204_H_ */
