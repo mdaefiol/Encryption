@@ -11,6 +11,8 @@ extern I2C_HandleTypeDef hi2c2;
 // CRC https://www.scadacore.com/tools/programming-calculators/online-checksum-calculator/
 // Zone encoding table 8-5
 
+uint8_t CRC_LSB = 0x00;
+uint8_t CRC_MSB = 0x00;
 
 void atCRC(uint8_t *data, uint8_t size)
 {
@@ -70,51 +72,61 @@ void WriteConfigZone(void){
 
 	// WritePwd1 + ReadPwd1
 	// comando para configuração da zona de configuração do slot: 0x00 e 0x01
-	uint8_t configSlot0_1[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x05, 0x00, 0xE9, 0x60, 0xE8, 0x70,  0x68, 0x11};
+	uint8_t slot0_1 = {0xE9, 0x60, 0xE8, 0x70};
+	uint8_t slot2_3 = {0xE1, 0x40, 0xA1, 0x80};
+	uint8_t slot4_5 = {0xC1, 0x75, 0xA0, 0x60};
+	uint8_t slot6_7 = {0xD1, 0x47, 0xB0, 0x40};
+	uint8_t slot8_9 = {0xCE, 0x49, 0xCE, 0x49};
+	uint8_t slot10_11 = {0xC8, 0x49, 0x88, 0x89};
+	uint8_t slot12_13 = {0xD8, 0x4D,  0x90, 0x49};
+	uint8_t slot14_15 = {0x0E, 0x0E, 0x88, 0x49};
+
+	uint8_t configSlot0_1[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x05, 0x00, 0xE9, 0x60, 0xE8, 0x70,  CRC_LSB, CRC_MSB};
+	atCRC(configSlot0_1,sizeof(configSlot0_1));
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot0_1, sizeof(configSlot0_1), 1000);
 	HAL_Delay(10);
 
 	// DATA0 + DATA1
 	// comando para configuração da zona de configuração do slot: 0x02 e 0x03
-	uint8_t configSlot2_3[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x06, 0x00,  0xE1, 0x40, 0xA1, 0x80, 0x00, 0x00};
+	uint8_t configSlot2_3[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x06, 0x00,  0xE1, 0x40, 0xA1, 0x80, CRC_LSB, CRC_MSB};
 	atCRC(configSlot2_3,sizeof(configSlot2_3));
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot2_3, sizeof(configSlot2_3), 1000);
 	HAL_Delay(10);
 
 	// PASSWORD1 + SECRET1
 	// comando para configuração da zona de configuração do slot: 0x04 e 0x05
-	uint8_t configSlot4_5[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x07, 0x00, 0xC1, 0x75, 0xA0, 0x60,  0x3a, 0x65};
+	uint8_t configSlot4_5[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x07, 0x00, 0xC1, 0x75, 0xA0, 0x60,  CRC_LSB, CRC_MSB};
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot4_5, sizeof(configSlot4_5), 1000);
 	HAL_Delay(10);
 
 	// PASSWORD2 + SECRET2
 	// comando para configuração da zona de configuração do slot: 0x06 e 0x07
-	uint8_t configSlot6_7[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x08, 0x00,  0xD1, 0x47, 0xB0, 0x40, 0x2d, 0xf0};
+	uint8_t configSlot6_7[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x08, 0x00,  0xD1, 0x47, 0xB0, 0x40, CRC_LSB, CRC_MSB};
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot6_7, sizeof(configSlot6_7), 1000);
 	HAL_Delay(10);
 
 	// ReadPwd2 + WritePwd2
 	// comando para configuração da zona de configuração do slot: 0x08 e 0x09
-	uint8_t configSlot8_9[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x09, 0x00, 0xCE,  0x49, 0xCE,  0x49, 0x2b, 0x91};
+	uint8_t configSlot8_9[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x09, 0x00, 0xCE,  0x49, 0xCE,  0x49, CRC_LSB, CRC_MSB};
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot8_9, sizeof(configSlot8_9), 1000);
 	HAL_Delay(10);
 
 	// DATA[2] + DATA[3]
 	// comando para configuração da zona de configuração do slot: 0x10 e 0x11
-	uint8_t configSlot10_11[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x0A, 0x00, 0xC8, 0x49, 0x88, 0x89, 0xfa, 0xdd};
+	uint8_t configSlot10_11[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x0A, 0x00, 0xC8, 0x49, 0x88, 0x89, CRC_LSB, CRC_MSB};
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot10_11, sizeof(configSlot10_11), 1000);
 	HAL_Delay(10);
 
 	// PASSWORD[3] + SECRET[3]
 	// comando para configuração da zona de configuração do slot: 0x12 e 0x13
-	uint8_t configSlot12_13[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x0B, 0x00, 0xD8, 0x4D,  0x90, 0x49, 0xfb, 0xaf };
+	uint8_t configSlot12_13[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x0B, 0x00, 0xD8, 0x4D,  0x90, 0x49, CRC_LSB, CRC_MSB};
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot12_13, sizeof(configSlot12_13), 1000);
 	HAL_Delay(10);
 
 	// MASTERKEY + DATA[4]
 	// comando para configuração da zona de configuração do slot: 0x14 e 0x15
 	// commanda, count, opcode, zone
-	uint8_t configSlot14_15[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x0C, 0x00, 0x0E, 0x0E, 0x88, 0x49, 0x2F, 0xEC };
+	uint8_t configSlot14_15[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x0C, 0x00, 0x0E, 0x0E, 0x88, 0x49, CRC_LSB, CRC_MSB};
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot14_15, sizeof(configSlot14_15), 1000);
 	HAL_Delay(10);
 }
@@ -124,7 +136,7 @@ void BlockConfigZone(uint8_t *receiv){
 
 	uint8_t DataReceive_35[35] = {0x00};
 	uint8_t DataReceive_7[7] = {0x00};
-	uint8_t DataZoneConfig[90] = {0x00};
+	uint8_t DataZoneConfig[91] = {0x00};
 	uint8_t adress = 0x08;
 	uint8_t size = 35;
 	uint8_t slot;
@@ -136,9 +148,9 @@ void BlockConfigZone(uint8_t *receiv){
 			atCRC(SendCommand,sizeof(SendCommand));
 			ReadConfig(SendCommand, size, DataReceive_35);
 
-			uint8_t length = i * 32;
-			for (uint8_t j = 0; j <= 32; j++){
-				DataZoneConfig[length + j] = DataReceive_35[j+1];
+			uint8_t length = i * (32 + 1);
+			for (uint8_t j = 1; j <= (32 + 1); j++){
+				DataZoneConfig[length + j] = DataReceive_35[j];
 			}
 		}
 		size = 7;
@@ -153,7 +165,7 @@ void BlockConfigZone(uint8_t *receiv){
 			ReadConfig(SendCommand, size, DataReceive_7);
 
 			for(uint8_t y = 0; y <= 3; y++){
-				uint8_t length = (x*4) + 64 + y;
+				uint8_t length = (x*4) + (64+1) + y;
 				DataZoneConfig[length] = DataReceive_7[y+1];
 		 	}
 		 }
@@ -163,7 +175,7 @@ void BlockConfigZone(uint8_t *receiv){
 	atCRC(DataZoneConfig, sizeof(DataZoneConfig));
 
 	// Lock command: {COMMAND, COUNT, OPCODE, ZONE, CRC_88_LSB,  CRC_88_MSB, CRC_LSB, CRC_MSB}
-	uint8_t blockConfig[] = { COMMAND, SIZE_BLOCK_CONFIG, COMMAND_LOCK, ZONE_CONFIG_LOCK, 0xc5, 0xc6,/*0xc4, 0xe1*/ 0x00, 0x00};
+	uint8_t blockConfig[] = { COMMAND, SIZE_BLOCK_CONFIG, COMMAND_LOCK, ZONE_CONFIG_LOCK, DataZoneConfig[90], DataZoneConfig[89],/*0xc4, 0xe1*/ 0x00, 0x00};
 	atCRC(blockConfig,sizeof(blockConfig));
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, blockConfig, sizeof(blockConfig), 1000);
 	HAL_Delay(10);

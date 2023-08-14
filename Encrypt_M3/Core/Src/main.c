@@ -151,7 +151,7 @@ int main(void)
   while (1)
   {
 	  WakeUp(read_byte);
-	  //WriteConfigZone();
+	  WriteConfigZone();
 	  BlockConfigZone(receiv_ack);
 	  //WriteDataZone();
 	  //WriteOTPZone();
