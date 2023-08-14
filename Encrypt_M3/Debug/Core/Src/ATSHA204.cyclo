@@ -1,0 +1,16 @@
+ATSHA204.c:15:6:atCRC	4
+ATSHA204.c:41:6:WakeUp	1
+ATSHA204.c:60:6:ReadConfig	1
+ATSHA204.c:69:6:WriteConfigZone	1
+ATSHA204.c:123:6:BlockConfigZone	7
+ATSHA204.c:176:6:WriteDataZone	1
+ATSHA204.c:262:6:WriteOTPZone	3
+ATSHA204.c:290:6:BlockDataZone	1
+ATSHA204.c:301:6:ReadDataZone	1
+ATSHA204.c:310:6:CommandNonce	2
+ATSHA204.c:337:6:GendigCommand	1
+ATSHA204.c:350:6:SHACommandInit	1
+ATSHA204.c:366:6:SHACommandCompute	2
+ATSHA204.c:393:6:TempKeyGen	4
+ATSHA204.c:426:6:ReadEncript	1
+ATSHA204.c:436:6:WriteEncript	1
