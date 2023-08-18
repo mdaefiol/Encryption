@@ -151,8 +151,8 @@ int main(void)
   while (1)
   {
 	  WakeUp(read_byte);
-	  WriteConfigZone();
-	  BlockConfigZone(receiv_ack);
+	 // WriteConfigZone();
+	 // BlockConfigZone(receiv_ack);
 	  //WriteDataZone();
 	  //WriteOTPZone();
 	  //BlockDataZone();
@@ -166,15 +166,15 @@ int main(void)
 	  ReadConfig(readCommand6, 7, read_config6);
 	  ReadConfig(readCommand7, 7, read_config7);
 
-	  //ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
-	  //CommandNonce(NumIn, 35, nonce_receiv);
+	  ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
+	  CommandNonce(NumIn, 35, nonce_receiv);
 	  //TempKeyGen(nonce_receiv, NumIn, 0, 55, 35, tempnonce);
-	  //GendigCommand(0x08, 0x00, 4, gendig_receiv);
+	  GendigCommand(0x08, 0x00, 4, gendig_receiv);
 
 	  //SHACommandInit(1, sha_init);
 	  //SHACommandCompute(35, SHA_receiv);
 
-	  //ReadEncript(readDATA2, 35, receiv_DATA2);
+	  ReadEncript(readDATA2, 35, receiv_DATA2);
 
 	  HAL_Delay(10);
 

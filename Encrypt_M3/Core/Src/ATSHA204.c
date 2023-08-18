@@ -52,7 +52,7 @@ void WakeUp(uint8_t *receiv){
 	HAL_Delay(5);
 
 	// Read 88bytes
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, &data, sizeof(data), 1000);		// Send 1 byte
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, &data, sizeof(data), 1000);	// Send 1 byte
 	HAL_Delay(5);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, 4, 1000); 		    	// Receiv: 0x04, 0x11, 0x33, 0x43.
 	HAL_Delay(5);
@@ -63,72 +63,39 @@ void ReadConfig(uint8_t *data, uint16_t size, uint8_t *receiv) {
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, data, 8, 1000); 		    // Send read command
 	HAL_Delay(5);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000); 	        // Receive: data packet size, 0x01 0x23..., CRC_LSB, CRC_MSB
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000); 	    // Receive: data packet size, 0x01 0x23..., CRC_LSB, CRC_MSB
 	HAL_Delay(5);
 }
 
 
 void WriteConfigZone(void){
 
-	// WritePwd1 + ReadPwd1
-	// comando para configuração da zona de configuração do slot: 0x00 e 0x01
-	uint8_t slot0_1 = {0xE9, 0x60, 0xE8, 0x70};
-	uint8_t slot2_3 = {0xE1, 0x40, 0xA1, 0x80};
-	uint8_t slot4_5 = {0xC1, 0x75, 0xA0, 0x60};
-	uint8_t slot6_7 = {0xD1, 0x47, 0xB0, 0x40};
-	uint8_t slot8_9 = {0xCE, 0x49, 0xCE, 0x49};
-	uint8_t slot10_11 = {0xC8, 0x49, 0x88, 0x89};
-	uint8_t slot12_13 = {0xD8, 0x4D,  0x90, 0x49};
-	uint8_t slot14_15 = {0x0E, 0x0E, 0x88, 0x49};
+	// Comando para configuração da zona de configuração dos slots
+	uint8_t configSlot[12];
+	uint8_t slot_addr = 0x05;
+	uint8_t slot_data[] = {0xE9, 0x60, 0xE8, 0x70, 0xE1, 0x40, 0xA1, 0x80, 0xC1, 0x75, 0xA0, 0x60, 0xD1, 0x47, 0xB0, 0x40, 0xCE, 0x49, 0xCE, 0x49,
+						 0xC8, 0x49, 0x88, 0x89, 0xD8, 0x4D,  0x90, 0x49, 0x0E, 0x0E, 0x88, 0x49};
 
-	uint8_t configSlot0_1[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x05, 0x00, 0xE9, 0x60, 0xE8, 0x70,  CRC_LSB, CRC_MSB};
-	atCRC(configSlot0_1,sizeof(configSlot0_1));
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot0_1, sizeof(configSlot0_1), 1000);
-	HAL_Delay(10);
+	for (uint8_t i = 0; i < sizeof(slot_data); i += 4){
 
-	// DATA0 + DATA1
-	// comando para configuração da zona de configuração do slot: 0x02 e 0x03
-	uint8_t configSlot2_3[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x06, 0x00,  0xE1, 0x40, 0xA1, 0x80, CRC_LSB, CRC_MSB};
-	atCRC(configSlot2_3,sizeof(configSlot2_3));
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot2_3, sizeof(configSlot2_3), 1000);
-	HAL_Delay(10);
+		configSlot[0] = COMMAND;
+		configSlot[1] = SIZE_WRITE_CONFIG;
+		configSlot[2] = COMMAND_WRITE;
+		configSlot[3] = 0x00;
+		configSlot[4] = slot_addr + (i / 4);
+		configSlot[5] = 0x00;
 
-	// PASSWORD1 + SECRET1
-	// comando para configuração da zona de configuração do slot: 0x04 e 0x05
-	uint8_t configSlot4_5[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x07, 0x00, 0xC1, 0x75, 0xA0, 0x60,  CRC_LSB, CRC_MSB};
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot4_5, sizeof(configSlot4_5), 1000);
-	HAL_Delay(10);
+		for (uint8_t j = 0; j < 4; j++) {
+			configSlot[6 + j] = slot_data[i + j];
+		}
 
-	// PASSWORD2 + SECRET2
-	// comando para configuração da zona de configuração do slot: 0x06 e 0x07
-	uint8_t configSlot6_7[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x08, 0x00,  0xD1, 0x47, 0xB0, 0x40, CRC_LSB, CRC_MSB};
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot6_7, sizeof(configSlot6_7), 1000);
-	HAL_Delay(10);
+		configSlot[10] = CRC_LSB;
+		configSlot[11] = CRC_MSB;
 
-	// ReadPwd2 + WritePwd2
-	// comando para configuração da zona de configuração do slot: 0x08 e 0x09
-	uint8_t configSlot8_9[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x09, 0x00, 0xCE,  0x49, 0xCE,  0x49, CRC_LSB, CRC_MSB};
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot8_9, sizeof(configSlot8_9), 1000);
-	HAL_Delay(10);
-
-	// DATA[2] + DATA[3]
-	// comando para configuração da zona de configuração do slot: 0x10 e 0x11
-	uint8_t configSlot10_11[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x0A, 0x00, 0xC8, 0x49, 0x88, 0x89, CRC_LSB, CRC_MSB};
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot10_11, sizeof(configSlot10_11), 1000);
-	HAL_Delay(10);
-
-	// PASSWORD[3] + SECRET[3]
-	// comando para configuração da zona de configuração do slot: 0x12 e 0x13
-	uint8_t configSlot12_13[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x0B, 0x00, 0xD8, 0x4D,  0x90, 0x49, CRC_LSB, CRC_MSB};
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot12_13, sizeof(configSlot12_13), 1000);
-	HAL_Delay(10);
-
-	// MASTERKEY + DATA[4]
-	// comando para configuração da zona de configuração do slot: 0x14 e 0x15
-	// commanda, count, opcode, zone
-	uint8_t configSlot14_15[] = {COMMAND, SIZE_WRITE_CONFIG, COMMAND_WRITE, 0x00, 0x0C, 0x00, 0x0E, 0x0E, 0x88, 0x49, CRC_LSB, CRC_MSB};
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot14_15, sizeof(configSlot14_15), 1000);
-	HAL_Delay(10);
+		atCRC(configSlot, sizeof(configSlot));
+		HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot, sizeof(configSlot), 1000);
+		HAL_Delay(10);
+	}
 }
 
 
@@ -181,7 +148,6 @@ void BlockConfigZone(uint8_t *receiv){
 	HAL_Delay(10);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, 1, 1000);
 	HAL_Delay(10);
-
 }
 
 
@@ -365,7 +331,7 @@ void SHACommandInit(uint16_t size, uint8_t *receiv){
 	uint8_t Param2_1 = 0x00;
 	uint8_t Param2_2 = 0x00;
 
-	uint8_t SHA[] = {COMMAND, 0x07, COMMAND_SHA, SHA_INIT, Param2_1, Param2_2, /*0x2e, 0x85*/ 0x00, 0x00};
+	uint8_t SHA[] = {COMMAND, 0x07, COMMAND_SHA, SHA_INIT, 0x00, Param2_1, Param2_2, /*0x2e, 0x85*/ 0x00, 0x00};
 	atCRC(SHA,sizeof(SHA));
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, SHA, sizeof(SHA), 1000);
