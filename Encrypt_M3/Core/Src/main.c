@@ -115,6 +115,7 @@ int main(void)
   // NONCE
   uint8_t NumIn[20]= {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00,
 		  	  	  	  0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00};
+
   uint8_t nonce_receiv[35] = {0};
   uint8_t tempnonce[35] = {0};
 
@@ -130,7 +131,7 @@ int main(void)
 
 
   uint8_t read_byte[4];
-  uint8_t receiv_ack[1] = {0};
+  uint8_t receiv_ack[4] = {0};
 
   //uint8_t read_config[32] = {0};
   uint8_t read_config0[35] = {0};
@@ -166,15 +167,16 @@ int main(void)
 	  ReadConfig(readCommand6, 7, read_config6);
 	  ReadConfig(readCommand7, 7, read_config7);
 
-	  ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
-	  CommandNonce(NumIn, 35, nonce_receiv);
+	  //CommandNonce(NumIn, 35, nonce_receiv);
+	  //ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
+	  //CommandNonce(NumIn, 35, nonce_receiv);
 	  //TempKeyGen(nonce_receiv, NumIn, 0, 55, 35, tempnonce);
-	  GendigCommand(0x08, 0x00, 4, gendig_receiv);
+	  //GendigCommand(0x08, 0x00, 4, gendig_receiv);
 
 	  //SHACommandInit(1, sha_init);
 	  //SHACommandCompute(35, SHA_receiv);
 
-	  ReadEncript(readDATA2, 35, receiv_DATA2);
+	 // ReadEncript(readDATA2, 35, receiv_DATA2);
 
 	  HAL_Delay(10);
 

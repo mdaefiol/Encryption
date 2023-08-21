@@ -68,7 +68,7 @@
 #define READ_WRITE_32			0x80
 #define READ_WRITE_4			0x00
 
-void atCRC(uint8_t *data, uint8_t size);
+void atCRC(uint8_t *data, uint8_t size, uint8_t *crc_le);
 
 void WakeUp(uint8_t *receiv);
 void ReadConfig(uint8_t *data, uint16_t size, uint8_t *receiv) ;
