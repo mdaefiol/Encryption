@@ -104,8 +104,10 @@ int main(void)
   uint8_t readCommand7[8] = {0x03, 0x07, 0x02, 0x00, 0x15, 0x00, 0x17, 0x5d};
 
   uint8_t readMASTERKEY[8] = {0x03, 0x07, 0x02, 0x82, 0x70, 0x00, 0x09, 0x8c};
-  uint8_t readDATA0[8] = {0x03, 0x07, 0x02, 0x82, 0x10, 0x00, 0x09, 0x98};
+
+  uint8_t readDATA0[8] = {0x03, 0x07, 0x02, 0x82, 0x08, 0x00, 0x09, 0x98};
   uint8_t readDATA2[8] = {0x03, 0x07, 0x02, 0x82, 0x50, 0x00, 0x0a, 0x14};
+  uint8_t readPASSW3[8] =  {0x03, 0x07, 0x02,  0x82, 0x38, 0x00, 0x09, 0xe0};
 
   uint8_t temp_nonce[] = {};
 
@@ -113,8 +115,10 @@ int main(void)
 
 
   // NONCE
-  uint8_t NumIn[20]= {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00,
-		  	  	  	  0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00};
+  uint8_t NumIn[32] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+		  	  	  	  	  	  	  	  	  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+										  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+										  0x00, 0x01};
 
   uint8_t nonce_receiv[35] = {0};
   uint8_t tempnonce[35] = {0};
@@ -127,8 +131,13 @@ int main(void)
   // GENDIG
   uint8_t gendig_receiv[4] = {0};
 
-  uint8_t receiv_DATA2[35] = {0};
 
+  //MAC
+  uint8_t MAC_reveiv[35] = {0};
+
+  uint8_t receiv_DATA2[35] = {0};
+  uint8_t receiv_DATA0[35] = {0};
+  uint8_t receiv_SECRET2[35] = {0};
 
   uint8_t read_byte[4];
   uint8_t receiv_ack[4] = {0};
@@ -153,10 +162,10 @@ int main(void)
   {
 	  WakeUp(read_byte);
 	 // WriteConfigZone();
-	 // BlockConfigZone(receiv_ack);
-	  //WriteDataZone();
-	  //WriteOTPZone();
-	  //BlockDataZone();
+	 //BlockConfigZone(receiv_ack);
+	 // WriteDataZone();
+	 // WriteOTPZone();
+	 //BlockDataZone();
 
 	  ReadConfig(readCommand0, 35, read_config0);
 	  ReadConfig(readCommand1, 35, read_config1);
@@ -167,16 +176,17 @@ int main(void)
 	  ReadConfig(readCommand6, 7, read_config6);
 	  ReadConfig(readCommand7, 7, read_config7);
 
-	  //CommandNonce(NumIn, 35, nonce_receiv);
-	  //ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
-	  //CommandNonce(NumIn, 35, nonce_receiv);
+	  CommandNonce(NumIn, 35, nonce_receiv);
 	  //TempKeyGen(nonce_receiv, NumIn, 0, 55, 35, tempnonce);
 	  //GendigCommand(0x08, 0x00, 4, gendig_receiv);
 
+	  //ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
+
 	  //SHACommandInit(1, sha_init);
 	  //SHACommandCompute(35, SHA_receiv);
-
-	 // ReadEncript(readDATA2, 35, receiv_DATA2);
+	  MacCommand(0x0f, 0x00, 35, MAC_reveiv);
+	  //ReadEncript(readSECRET2, 35, receiv_SECRET2);
+	  //ReadEncript(readDATA2, 35, receiv_DATA2);
 
 	  HAL_Delay(10);
 
