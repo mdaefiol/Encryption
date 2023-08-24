@@ -42,6 +42,7 @@
 #define COMMAND_GENDIG         	 	0x15
 #define COMMAND_LOCK           	 	0x17
 #define COMMAND_MAC            	 	0x08
+#define COMMAND_CHECKMAC       0x28
 #define COMMAND_NONCE           	0x16
 #define COMMAND_PAUSE           		0x01
 #define COMMAND_RANDOM          0x1B
@@ -84,6 +85,7 @@ void ReadDataZone(uint8_t *data, uint16_t size, uint8_t *receiv);
 void CommandNonce(uint8_t *NumIn, uint16_t size, uint8_t *receiv);
 void GendigCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t size, uint8_t *receiv);
 void MacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint16_t size, uint8_t *receiv);
+void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp, uint16_t size, uint8_t *receiv);
 
 void SHACommandInit(uint16_t size, uint8_t *receiv);
 void SHACommandCompute(uint8_t *data, uint8_t size, uint8_t *receiv);

@@ -10,8 +10,9 @@
 ../Core/Src/ATSHA204.c:340:6:CommandNonce	2
 ../Core/Src/ATSHA204.c:368:6:GendigCommand	1
 ../Core/Src/ATSHA204.c:393:6:MacCommand	1
-../Core/Src/ATSHA204.c:423:6:SHACommandInit	1
-../Core/Src/ATSHA204.c:438:6:SHACommandCompute	2
-../Core/Src/ATSHA204.c:466:6:TempKeyGen	4
-../Core/Src/ATSHA204.c:501:6:ReadEncript	1
-../Core/Src/ATSHA204.c:511:6:WriteEncript	1
+../Core/Src/ATSHA204.c:422:6:CheckMacCommand	7
+../Core/Src/ATSHA204.c:463:6:SHACommandInit	1
+../Core/Src/ATSHA204.c:478:6:SHACommandCompute	2
+../Core/Src/ATSHA204.c:506:6:TempKeyGen	4
+../Core/Src/ATSHA204.c:541:6:ReadEncript	1
+../Core/Src/ATSHA204.c:551:6:WriteEncript	1

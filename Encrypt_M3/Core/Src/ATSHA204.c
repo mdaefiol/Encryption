@@ -340,17 +340,17 @@ void ReadDataZone(uint8_t *data, uint16_t size, uint8_t *receiv) {
 void CommandNonce(uint8_t *NumIn, uint16_t size, uint8_t *receiv){ //OK
 
 	// NONCE command: {COMMAND, COUNT, OPCODE, Param1_mode, 0x00, 0x00, NumIn[20], CRC_LSB, CRC_MSB}
-	uint8_t noncecommand[40]; //40
+	uint8_t noncecommand[28]; //40
 	uint8_t CRC_receiv[2];
 
     noncecommand[0] = COMMAND;
-    noncecommand[1] = SIZE_WRITE_NONCE32; //SIZE_WRITE_NONCE20;
+    noncecommand[1] = SIZE_WRITE_NONCE20; //SIZE_WRITE_NONCE32;
     noncecommand[2] = COMMAND_NONCE;
-    noncecommand[3] = 0x03; // modo3
+    noncecommand[3] = 0x00; // modo3
     noncecommand[4] = 0x00;
     noncecommand[5] = 0x00;
 
-	for(uint8_t i = 0; i <= 32; i++){  // <=32
+	for(uint8_t i = 0; i <= 20; i++){  // <=32
 		 noncecommand[6 + i] = NumIn[i];
 	}
 
@@ -400,7 +400,7 @@ void MacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint16_t size, uint8_t *
 	 MAC[0]= COMMAND;
 	 MAC[1]= 0x07; 	//size 0x27
 	 MAC[2]= COMMAND_MAC;
-	 MAC[3]= 0x07 ; 	//mode
+	 MAC[3]= 0x01 ; 	//mode
 	 MAC[4]= SlotID_LSB;
 	 MAC[5]= SlotID_MSB;
 /*
@@ -419,6 +419,46 @@ void MacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint16_t size, uint8_t *
 }
 
 
+void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp, uint16_t size, uint8_t *receiv){
+
+	uint8_t  CheckMAC[87] ;
+	uint8_t CRC_receiv[2];
+	uint8_t size_att;
+
+	uint8_t ClientChal [32] = {0x00};
+	//uint8_t ClientResp [32] = {0x00}; // sha-256 gerado pelo MAC
+	uint8_t OtherData[13] = {0x08, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+	CheckMAC[0]= COMMAND;
+	CheckMAC[1]= 0x54;
+	CheckMAC[2]= COMMAND_CHECKMAC;
+	CheckMAC[3]= 0x01 ; 	//mode
+	CheckMAC[4]= SlotID_LSB;
+	CheckMAC[5]= SlotID_MSB;
+
+	for(uint8_t i = 0; i <= 77; i++){
+		if (i <= 32){
+			CheckMAC[6 + i] = ClientChal[i];
+			size_att = 6 + i;
+		}
+		else if (i > 32 && i <= 64){
+			CheckMAC[size_att] = ClientResp[i - 32];
+			size_att +=  i;
+		}
+		else if ( i > 64 && i <= 77){
+			CheckMAC[size_att + i] = OtherData[i - 64];
+		}
+	}
+
+	atCRC(CheckMAC, sizeof(CheckMAC), CRC_receiv);
+	CheckMAC[sizeof(CheckMAC) - 2] = CRC_receiv[0] ;
+	CheckMAC[sizeof(CheckMAC) - 1] = CRC_receiv[1] ;
+
+	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, CheckMAC, sizeof(CheckMAC), 1000);
+	HAL_Delay(35);
+	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
+	HAL_Delay(5);
+}
 
 void SHACommandInit(uint16_t size, uint8_t *receiv){
 
