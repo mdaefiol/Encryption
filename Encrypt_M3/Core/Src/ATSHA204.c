@@ -359,7 +359,7 @@ void CommandNonce(uint8_t *NumIn, uint16_t size, uint8_t *receiv){ //OK
 	noncecommand[sizeof(noncecommand) - 1] = CRC_receiv[1] ;
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, noncecommand, sizeof(noncecommand), 1000);
-	HAL_Delay(50);
+	HAL_Delay(40);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(10);
 }
@@ -385,7 +385,7 @@ void GendigCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t size, uint8_t
 	GenDig[7] = CRC_receiv[1] ;
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, GenDig, sizeof(GenDig), 1000);
-	HAL_Delay(50);
+	HAL_Delay(40);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
@@ -421,7 +421,7 @@ void MacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint16_t size, uint8_t *
 
 void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp, uint16_t size, uint8_t *receiv){
 
-	uint8_t  CheckMAC[87] ;
+	uint8_t  CheckMAC[85] ;
 	uint8_t CRC_receiv[2];
 	uint8_t size_att;
 
@@ -430,7 +430,7 @@ void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp
 	uint8_t OtherData[13] = {0x08, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 	CheckMAC[0]= COMMAND;
-	CheckMAC[1]= 0x54;
+	CheckMAC[1]= 0x55;
 	CheckMAC[2]= COMMAND_CHECKMAC;
 	CheckMAC[3]= 0x01 ; 	//mode
 	CheckMAC[4]= SlotID_LSB;

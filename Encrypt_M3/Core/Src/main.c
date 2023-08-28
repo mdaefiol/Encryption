@@ -181,15 +181,15 @@ int main(void)
 
 	  CommandNonce(NumIn, 35, nonce_receiv);
 	  //TempKeyGen(nonce_receiv, NumIn, 0, 55, 35, tempnonce);
-	  GendigCommand(0x01, 0x00, 4, gendig_receiv);
+	 GendigCommand(0x01, 0x00, 4, gendig_receiv);
 	  //ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
 	  //SHACommandInit(1, sha_init);
 	  //SHACommandCompute(35, SHA_receiv);
-	 MacCommand(0x04, 0x00, 35, MAC_receiv);
+	 MacCommand(0x06, 0x00, 35, MAC_receiv);
 	  //ReadEncript(readSECRET2, 35, receiv_SECRET2);
-	  CheckMacCommand(0x04, 0x00, dado, 4, CheckMAC_receiv); // slot 0x04
+	  CheckMacCommand(0x06, 0x00, dado, 4, CheckMAC_receiv); // slot 0x04
 	  //ReadEncript(WritePwd2, 35, receiv_WritePwd2);
-	  ReadEncript(PASSWORD1, 35, receiv_PASSWORD1);
+	  //ReadEncript(PASSWORD1, 35, receiv_PASSWORD1);
 	  HAL_Delay(10);
 
     /* USER CODE END WHILE */
