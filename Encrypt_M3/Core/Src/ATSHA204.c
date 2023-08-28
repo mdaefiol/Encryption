@@ -75,10 +75,13 @@ void WriteConfigZone(void){
 	uint8_t configSlot[12];
 	uint8_t CRC_receiv[2];
 	uint8_t slot_addr = 0x04;
-	uint8_t slot_data[] = {0xC8, 0xff, 0x55, 0x00, 0xE9, 0x60, 0xE8, 0x70, 0xE1, 0x40, 0xA1, 0x80, 0xC1, 0x75, 0xA0, 0x60, 0xD1, 0x47, 0xB0, 0x40, 0xCE, 0x49, 0xCE, 0x49,
-						 0xC8, 0x49, 0x88, 0x89, 0xD8, 0x4D,  0x90, 0x49, 0x0E, 0x0E, 0x88, 0x49};
+//	uint8_t config_1[] = {0xC8, 0xff, 0x55, 0x00, 0xE9, 0x60, 0xE8, 0x70, 0xE1, 0x40, 0xA1, 0x80, 0xC1, 0x75, 0xA0, 0x60, 0xD1, 0x47, 0xB0, 0x40, 0xCE, 0x49, 0xCE, 0x49,
+//						 0xC8, 0x49, 0x88, 0x89, 0xD8, 0x4D,  0x90, 0x49, 0x0E, 0x0E, 0x88, 0x49};
 
-	for (uint8_t i = 0; i < sizeof(slot_data); i += 4){
+	uint8_t config_2[] = {0xC8, 0x00, 0x55, 0x00, 0xC1, 0x40, 0xc0, 0x50, 0xc0, 0x40, 0x80, 0x80, 0xd2, 0x55, 0x80, 0x40, 0xc5, 0x43, 0x85, 0x40, 0xc5, 0x43, 0xc5, 0x43,
+						  0xc5, 0x43, 0x85, 0x83, 0xc5, 0x43, 0x85, 0x43, 0x05, 0x03, 0x85, 0x43};
+
+	for (uint8_t i = 0; i < sizeof(config_2); i += 4){
 
 		configSlot[0] = COMMAND;
 		configSlot[1] = SIZE_WRITE_CONFIG;
@@ -88,7 +91,7 @@ void WriteConfigZone(void){
 		configSlot[5] = 0x00;
 
 		for (uint8_t j = 0; j < 4; j++) {
-			configSlot[6 + j] = slot_data[i + j];
+			configSlot[6 + j] = config_2[i + j];
 		}
 
 		atCRC(configSlot, sizeof(configSlot), CRC_receiv);
@@ -97,7 +100,7 @@ void WriteConfigZone(void){
 		configSlot[11] = CRC_receiv[1];
 
 		HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, configSlot, sizeof(configSlot), 1000);
-		HAL_Delay(10);
+		HAL_Delay(30);
 	}
 }
 
@@ -184,7 +187,7 @@ void BlockConfigZone(uint8_t *receiv){
 	BlockConfig[7] = CRC_receiv[1] ;
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, BlockConfig, sizeof(BlockConfig), 1000);
-	HAL_Delay(10);
+	HAL_Delay(50);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, 4, 1000);
 	HAL_Delay(10);
 }
@@ -419,46 +422,44 @@ void MacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint16_t size, uint8_t *
 }
 
 
-void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp, uint16_t size, uint8_t *receiv){
+void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp, uint16_t size, uint8_t *receiv) {
+    uint8_t CheckMAC[85] = {0};
+    uint8_t CRC_receiv[2];
+    uint8_t size_att = 0; // Inicializado para 0
 
-	uint8_t  CheckMAC[85] ;
-	uint8_t CRC_receiv[2];
-	uint8_t size_att;
+    uint8_t ClientChal[32] = {0};
+    uint8_t OtherData[13] = {0x08, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-	uint8_t ClientChal [32] = {0x00};
-	//uint8_t ClientResp [32] = {0x00}; // sha-256 gerado pelo MAC
-	uint8_t OtherData[13] = {0x08, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    CheckMAC[0] = 0x03;
+    CheckMAC[1] = 0x55;
+    CheckMAC[2] = COMMAND_CHECKMAC;
+    CheckMAC[3] = 0x01;    // mode
+    CheckMAC[4] = SlotID_LSB;
+    CheckMAC[5] = SlotID_MSB;
 
-	CheckMAC[0]= COMMAND;
-	CheckMAC[1]= 0x55;
-	CheckMAC[2]= COMMAND_CHECKMAC;
-	CheckMAC[3]= 0x01 ; 	//mode
-	CheckMAC[4]= SlotID_LSB;
-	CheckMAC[5]= SlotID_MSB;
+    for (uint8_t i = 0; i <= 77; i++) {
+        if (i <= 32) {
+            CheckMAC[6 + i] = ClientChal[i];
+            size_att = 6 + i;
+        } else if (i > 32 && i <= 64) {
+            CheckMAC[size_att] = ClientResp[i - 32];
+            size_att++; // Correção: era += i, deve ser incremento simples
+        } else if (i > 63 && i <= 77) {
+            CheckMAC[size_att] = OtherData[i - 65];
+            size_att++;
+        }
+    }
 
-	for(uint8_t i = 0; i <= 77; i++){
-		if (i <= 32){
-			CheckMAC[6 + i] = ClientChal[i];
-			size_att = 6 + i;
-		}
-		else if (i > 32 && i <= 64){
-			CheckMAC[size_att] = ClientResp[i - 32];
-			size_att +=  i;
-		}
-		else if ( i > 64 && i <= 77){
-			CheckMAC[size_att + i] = OtherData[i - 64];
-		}
-	}
+    atCRC(CheckMAC, sizeof(CheckMAC), CRC_receiv);
+    CheckMAC[sizeof(CheckMAC) - 2] = CRC_receiv[0];
+    CheckMAC[sizeof(CheckMAC) - 1] = CRC_receiv[1];
 
-	atCRC(CheckMAC, sizeof(CheckMAC), CRC_receiv);
-	CheckMAC[sizeof(CheckMAC) - 2] = CRC_receiv[0] ;
-	CheckMAC[sizeof(CheckMAC) - 1] = CRC_receiv[1] ;
-
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, CheckMAC, sizeof(CheckMAC), 1000);
-	HAL_Delay(35);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
-	HAL_Delay(5);
+    HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, CheckMAC, sizeof(CheckMAC), 1000);
+    HAL_Delay(40);
+    HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
+    HAL_Delay(5);
 }
+
 
 void SHACommandInit(uint16_t size, uint8_t *receiv){
 
