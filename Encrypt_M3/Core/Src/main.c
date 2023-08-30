@@ -107,7 +107,7 @@ int main(void)
   uint8_t readDATA2[8] = {0x03, 0x07, 0x02, 0x82, 0x50, 0x00, 0x0a, 0x14};
 
   uint8_t WritePwd2[8] =  {0x03, 0x07, 0x02, 0x82, 0x48, 0x00, 0x0a, 0x44};
-  uint8_t PASSWORD1[8] = {0x03, 0x07, 0x02,  0x82, 0x20, 0x00, 0x09, 0xb0};
+  uint8_t LOBBYKEY_2[8] = {0x03, 0x07, 0x02,  0x82, 0x20, 0x00, 0x09, 0xb0};
 
   uint8_t temp_nonce[] = {};
 
@@ -124,6 +124,7 @@ int main(void)
   uint8_t nonce_receiv[35] = {0};
   uint8_t tempnonce[35] = {0};
 
+  uint8_t LOBBYKEY_rec[35];
 
   // SHA-256
   uint8_t sha_init[1] = {0};
@@ -138,10 +139,6 @@ int main(void)
   uint8_t CheckMAC_receiv[4] = {0};
   uint8_t dado[32] = {0};
 
-  uint8_t receiv_DATA2[35] = {0};
-  uint8_t receiv_DATA0[35] = {0};
-  uint8_t receiv_WritePwd2[35] = {0};
-  uint8_t  receiv_PASSWORD1[35] = {0};
 
   uint8_t read_byte[4];
   uint8_t receiv_ack[4] = {0};
@@ -182,20 +179,15 @@ int main(void)
 
 	  CommandNonce(NumIn, 35, nonce_receiv);
 	  //TempKeyGen(nonce_receiv, NumIn, 0, 55, 35, tempnonce);
-	  GendigCommand(0x00, 0x00, 4, gendig_receiv);
+	  GendigCommand(0x02, 0x00, 4, gendig_receiv);
 	  //ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
 	  //SHACommandInit(1, sha_init);
 	  //SHACommandCompute(35, SHA_receiv);
-	  MacCommand(0x05, 0x00, 35, MAC_receiv);
-	  for (int i=0; i<=35; i++){
-		  aux[i] = MAC_receiv[i];
+	  MacCommand(0x04, 0x00, 35, MAC_receiv);
 
-	  }
-	  //ReadEncript(readSECRET2, 35, receiv_SECRET2);
-	  CheckMacCommand(0x05, 0x00, aux, 4, CheckMAC_receiv); // slot 0x04
-	  //ReadEncript(WritePwd2, 35, receiv_WritePwd2);
-	  //ReadEncript(PASSWORD1, 35, receiv_PASSWORD1);
+	  CheckMacCommand(0x04, 0x00, MAC_receiv, 4, CheckMAC_receiv);
 
+	  //ReadEncript(LOBBYKEY_2, 35, LOBBYKEY_rec);
 
 	  HAL_Delay(10);
 

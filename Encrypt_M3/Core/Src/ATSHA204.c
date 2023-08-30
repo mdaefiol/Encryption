@@ -334,7 +334,7 @@ void BlockDataZone(void){
 void ReadDataZone(uint8_t *data, uint16_t size, uint8_t *receiv) {
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, data, 8, 1000);
-	HAL_Delay(5);
+	HAL_Delay(20);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
@@ -416,7 +416,7 @@ void MacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint16_t size, uint8_t *
 	MAC[sizeof(MAC) - 1] = CRC_receiv[1] ;
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, MAC, sizeof(MAC), 1000);
-	HAL_Delay(40);
+	HAL_Delay(45);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
@@ -431,7 +431,7 @@ void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp
     uint8_t OtherData[13] = {0x08, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     CheckMAC[0] = 0x03;
-    CheckMAC[1] = 0x55;
+    CheckMAC[1] = 0x54;
     CheckMAC[2] = COMMAND_CHECKMAC;
     CheckMAC[3] = 0x01;    // mode
     CheckMAC[4] = SlotID_LSB;
@@ -443,7 +443,7 @@ void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp
             size_att = 6 + i;
         } else if (i > 32 && i <= 64) {
             CheckMAC[size_att] = ClientResp[i - 32];
-            size_att++; // Correção: era += i, deve ser incremento simples
+            size_att++;
         } else if (i > 63 && i <= 77) {
             CheckMAC[size_att] = OtherData[i - 65];
             size_att++;
@@ -543,7 +543,7 @@ void ReadEncript(uint8_t *data, uint16_t size, uint8_t *receiv){
 
 	// Read Encript
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, data, 8, 1000); // Send read encript command
-	HAL_Delay(5);
+	HAL_Delay(20);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
