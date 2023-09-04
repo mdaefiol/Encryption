@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (11.3.rel1)
+# Toolchain: GNU Tools for STM32 (10.3-2021.10)
 ################################################################################
 
 -include ../makefile.init
@@ -60,8 +60,8 @@ all: main-build
 main-build: Encrypt_M3.elf secondary-outputs
 
 # Tool invocations
-Encrypt_M3.elf Encrypt_M3.map: $(OBJS) $(USER_OBJS) C:\Users\mdaef\OneDrive\Documentos\GitHub\Encryption\Encrypt_M3\STM32F103CBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Encrypt_M3.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\mdaef\OneDrive\Documentos\GitHub\Encryption\Encrypt_M3\STM32F103CBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Encrypt_M3.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Encrypt_M3.elf Encrypt_M3.map: $(OBJS) $(USER_OBJS) /home/oriongames/Desktop/Encryption/Encrypt_M3/STM32F103CBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Encrypt_M3.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/home/oriongames/Desktop/Encryption/Encrypt_M3/STM32F103CBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Encrypt_M3.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

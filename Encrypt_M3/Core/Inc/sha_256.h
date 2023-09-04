@@ -36,8 +36,10 @@ void sha256_transform(SHA256 *ctx);
 
 void sha256_pad(SHA256 *ctx);
 void sha256_revert( SHA256 *ctx, uint8_t *hash) ;
-void sha256_toString(const uint8_t *digest, char *hashString) ;
+//void sha256_toString(const uint8_t *digest, char *hashString) ;
 
-void calculateSHA256Hash(uint8_t *data, uint8_t dataSize, char *hashString);
+void GenDigSHA256Hash(uint8_t *data, uint8_t *aux);
+void MACSHA256Hash(uint8_t *data, uint8_t *aux);
+void calculateSHA256Hash(uint8_t *data, uint8_t dataSize, uint8_t *aux) ;
 
 #endif /* INC_SHA_256_H_ */

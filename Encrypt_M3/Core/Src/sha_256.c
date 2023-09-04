@@ -5,9 +5,21 @@
  *      Author: mdaef
  */
 #include "sha_256.h"
+#include "ATSHA204.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+uint8_t general_conf[]	=  {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // 104 PAD
+							0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+							0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+							0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00 };// 128 LENGTH;
+
+uint8_t slot2[] =		{0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x20, 0x21, 0x22, 0x23, 0x24,
+				     	 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29};
+
+uint8_t slot4[] =		{0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x40, 0x41, 0x42, 0x43, 0x44,
+					 	 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49};
 
 const uint32_t K[64] = {
 		0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,
@@ -51,7 +63,6 @@ void sha256_update(SHA256 *ctx, const uint8_t *data, uint8_t length) {
     for (size_t i = 0; i < length; i++) {
         ctx->m_data[ctx->m_blocklen++] = data[i];
         if (ctx->m_blocklen == 64) {
-            // Chame a função transform() aqui usando ctx->m_state
         	sha256_transform(ctx);
 
 
@@ -75,7 +86,7 @@ uint8_t *sha256_digest(SHA256 *ctx) {
         return NULL;
     }
 
-    sha256_pad(ctx);
+    //sha256_pad(ctx);
     sha256_revert(ctx, hash);
 
     return hash;
@@ -151,11 +162,11 @@ void sha256_pad(SHA256 *ctx) {
 
     ctx->m_data[i++] = 0x80; // Anexar um bit 1
     while (i < end) {
-        ctx->m_data[i++] = 0x00; // Preencher com zeros
+        ctx->m_data[i++] = 0x00; // Preenche com zeros
     }
 
     if (ctx->m_blocklen >= 56) {
-        sha256_transform(ctx); // Chame a função transform()
+        sha256_transform(ctx);
         memset(ctx->m_data, 0, 56);
     }
 
@@ -180,7 +191,7 @@ void sha256_revert( SHA256 *ctx, uint8_t*hash) {
         }
     }
 }
-
+/*
 void sha256_toString(const uint8_t *digest, char *hashString) {
     const char hexChars[] = "0123456789abcdef";
 
@@ -188,20 +199,94 @@ void sha256_toString(const uint8_t *digest, char *hashString) {
         hashString[i * 2] = hexChars[(digest[i] >> 4) & 0xF];
         hashString[i * 2 + 1] = hexChars[digest[i] & 0xF];
     }
-    hashString[64] = '\0'; // Adiciona o terminador nulo no final da string
+    hashString[64] = '\0';
 }
 
-void calculateSHA256Hash(uint8_t *data, uint8_t dataSize, char *hashString) {
+void GenDigSHA256Hash(uint8_t *data) {
+    uint8_t gendig[128];
+    uint8_t config_gendig[] = {0x15, 0x02, 0x02, 0x00, 0xEE, 0x01, 0x23, 0x00,
+                               0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                               0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+    for (int i = 0; i < 32; i++) {
+        gendig[i] = 0x20 + i;
+    }
+
+    for (int i = 0; i < 32; i++) {
+        gendig[32 + i] = config_gendig[i];
+        gendig[64 + i] = data[i];
+        gendig[96 + i] = general_conf[i];
+    }
+}
+*/
+
+void GenDigSHA256Hash(uint8_t *data, uint8_t *aux) {
+
     SHA256 sha;
+	uint8_t gendig[128];
+    uint8_t config_gendig[] = {0x15, 0x02, 0x02, 0x00, 0xEE, 0x01, 0x23, 0x00,
+                               0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                               0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+    memcpy(gendig, slot2, 32);
+    memcpy(gendig + 32, config_gendig, 32);
+    memcpy(gendig + 64, data, 32);
+    memcpy(gendig + 96, general_conf, 32);
+
     sha256_init(&sha);
-    sha256_update(&sha, data, dataSize);
+    sha256_update(&sha, gendig, sizeof(gendig));
     uint8_t *digest = sha256_digest(&sha);
 
-    sha256_toString(digest, hashString);
+    for (int i = 0; i<128;i++){
+    	aux[i] = digest[i];
+    }
 
-    // Liberar a memória alocada para o digest
     free(digest);
 }
 
 
+void MACSHA256Hash(uint8_t *data, uint8_t *aux){
+
+	SHA256 sha;
+	uint8_t mac[128];
+	uint8_t config_mac[] = {0x08, 0x01, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00,
+							0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xEE,
+							0x00, 0x00, 0x00, 0x00, 0x01, 0x23, 0x00, 0x00,
+							0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	uint8_t mac_final[] = {	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			  	  	  	  	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+							0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+							0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xC0};
+    memcpy(mac, slot4, 32);
+    memcpy(mac + 32, data, 32);
+    memcpy(mac + 64, config_mac, 32);
+    memcpy(mac + 96, mac_final, 32);
+
+    sha256_init(&sha);
+    sha256_update(&sha, mac, sizeof(mac));
+    uint8_t *digest = sha256_digest(&sha);
+
+    for (int i = 0; i<128;i++){
+    	aux[i] = digest[i];
+    }
+
+    free(digest);
+}
+
+
+void calculateSHA256Hash(uint8_t *data, uint8_t dataSize, uint8_t *aux) {
+    SHA256 sha;
+
+    sha256_init(&sha);
+    sha256_update(&sha, data, dataSize);
+    uint8_t *digest = sha256_digest(&sha);
+
+    for (int i =0; i<64;i++){
+    	aux[i] = digest[i];
+    }
+    //sha256_toString(digest, hashString);
+
+    // Liberar a memória alocada para o digest
+    free(digest);
+}
 

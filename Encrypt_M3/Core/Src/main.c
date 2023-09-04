@@ -121,7 +121,7 @@ int main(void)
 						//  0x00, 0x01};
 
   uint8_t aux[35] = {0};
-  uint8_t nonce_receiv[35] = {0};
+  uint8_t randout[35] = {0};
   uint8_t tempnonce[35] = {0};
 
   uint8_t LOBBYKEY_rec[35];
@@ -138,6 +138,8 @@ int main(void)
 
   //MAC
   uint8_t MAC_receiv[35] = {0};
+  uint8_t gendig_calc[35] = {0};
+  uint8_t MAC_calc[35] = {0};
   uint8_t CheckMAC_receiv[4] = {0};
   uint8_t dado[32] = {0};
 
@@ -157,12 +159,9 @@ int main(void)
   uint8_t read_config8[7] = {0};
 
 
-  uint8_t data[] = {0x0c, 0x7d, 0x32, 0xd4, 0xb9, 0x98, 0xa1, 0xb8, 0x44, 0x32, 0xc7, 0x88, 0x80, 0x22, 0x66, 0xa1,
-      0x88, 0x2e, 0x5b, 0x28, 0xc4, 0x87, 0x32, 0x0d, 0x09, 0x9e, 0xc6, 0x4c, 0x1b, 0x3a, 0x46, 0x87,
-      0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-      0x07, 0x08, 0x09, 0x00, 0x16, 0x00, 0x00};
-
+  uint8_t data;
   char hashString[65];
+
 
 
   /* USER CODE END 2 */
@@ -187,15 +186,19 @@ int main(void)
 	  ReadConfig(readCommand6, 7, read_config6);
 	  ReadConfig(readCommand7, 7, read_config7);
 
-	  CommandNonce(NumIn, 35, nonce_receiv);
+	  CommandNonce(NumIn, 35, randout);
 	  //TempKeyGen(nonce_receiv, NumIn, 0, 55, 35, tempnonce);
 	  GendigCommand(0x02, 0x00, 4, gendig_receiv);
+
+	  GenDigSHA256Hash(randout, gendig_calc);
+	  MACSHA256Hash(gendig_calc, MAC_calc);
 	  //ReadDataZone(readMASTERKEY, 35, receiv_MASTERKEY);
 	  //SHACommandInit(1, sha_init);
 	  //SHACommandCompute(35, SHA_receiv);
+
 	  MacCommand(0x04, 0x00, 35, MAC_receiv);
-	  calculateSHA256Hash(data, sizeof(data), hashString);
-	  //CheckMacCommand(0x04, 0x00, MAC_receiv, 4, CheckMAC_receiv);
+	  //calculateSHA256Hash(data, sizeof(data), hashString);
+	  CheckMacCommand(0x04, 0x00, MAC_calc, 4, CheckMAC_receiv);
 
 	  //ReadEncript(LOBBYKEY_2, 35, LOBBYKEY_rec);
 
