@@ -1,5 +1,4 @@
 Core/Src/sha_256.o: ../Core/Src/sha_256.c ../Core/Inc/sha_256.h \
- ../Core/Inc/ATSHA204.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
@@ -25,7 +24,6 @@ Core/Src/sha_256.o: ../Core/Src/sha_256.c ../Core/Inc/sha_256.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_usart.h
 ../Core/Inc/sha_256.h:
-../Core/Inc/ATSHA204.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h:

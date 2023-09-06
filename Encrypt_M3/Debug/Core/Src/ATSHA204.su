@@ -11,8 +11,8 @@
 ../Core/Src/ATSHA204.c:371:6:GendigCommand	40	static
 ../Core/Src/ATSHA204.c:396:6:MacCommand	40	static
 ../Core/Src/ATSHA204.c:425:6:CheckMacCommand	176	static
-../Core/Src/ATSHA204.c:464:6:SHACommandInit	16	static
-../Core/Src/ATSHA204.c:479:6:SHACommandCompute	112	static
-../Core/Src/ATSHA204.c:507:6:TempKeyGen	72	dynamic
-../Core/Src/ATSHA204.c:542:6:ReadEncript	32	static
-../Core/Src/ATSHA204.c:552:6:WriteEncript	64	static
+../Core/Src/ATSHA204.c:475:6:SHACommandInit	16	static
+../Core/Src/ATSHA204.c:490:6:SHACommandCompute	112	static
+../Core/Src/ATSHA204.c:518:6:TempKeyGen	72	dynamic
+../Core/Src/ATSHA204.c:553:6:ReadEncript	32	static
+../Core/Src/ATSHA204.c:563:6:WriteEncript	64	static

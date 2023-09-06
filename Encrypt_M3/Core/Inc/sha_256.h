@@ -8,7 +8,7 @@
 #ifndef INC_SHA_256_H_
 #define INC_SHA_256_H_
 
-#include <stdint.h>
+#include "stm32f1xx_hal.h"
 
 // Define a estrutura para armazenar o estado do SHA-256
 typedef struct {
@@ -38,6 +38,7 @@ void sha256_pad(SHA256 *ctx);
 void sha256_revert( SHA256 *ctx, uint8_t *hash) ;
 //void sha256_toString(const uint8_t *digest, char *hashString) ;
 
+void NonceSHA256Hash(uint8_t *data, uint8_t *NumIn, uint8_t *aux) ;
 void GenDigSHA256Hash(uint8_t *data, uint8_t *aux);
 void MACSHA256Hash(uint8_t *data, uint8_t *aux);
 void calculateSHA256Hash(uint8_t *data, uint8_t dataSize, uint8_t *aux) ;

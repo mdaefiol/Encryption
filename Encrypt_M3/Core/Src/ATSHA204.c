@@ -388,7 +388,7 @@ void GendigCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t size, uint8_t
 	GenDig[7] = CRC_receiv[1] ;
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, GenDig, sizeof(GenDig), 1000);
-	HAL_Delay(40);
+	HAL_Delay(30);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
@@ -416,7 +416,7 @@ void MacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint16_t size, uint8_t *
 	MAC[sizeof(MAC) - 1] = CRC_receiv[1] ;
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, MAC, sizeof(MAC), 1000);
-	HAL_Delay(45);
+	HAL_Delay(30);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
@@ -427,7 +427,7 @@ void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp
     uint8_t CRC_receiv[2];
     uint8_t size_att = 0; // Inicializado para 0
 
-    uint8_t ClientChal[32] = {0};
+    uint8_t ClientChal[32] = {0x00};
     uint8_t OtherData[13] = {0x08, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     CheckMAC[0] = 0x03;
@@ -436,7 +436,7 @@ void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp
     CheckMAC[3] = 0x01;    // mode
     CheckMAC[4] = SlotID_LSB;
     CheckMAC[5] = SlotID_MSB;
-
+/*
     for (uint8_t i = 0; i <= 77; i++) {
         if (i <= 32) {
             CheckMAC[6 + i] = ClientChal[i];
@@ -448,6 +448,17 @@ void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp
             CheckMAC[size_att] = OtherData[i - 65];
             size_att++;
         }
+      }
+ */
+
+    for (uint8_t i = 0; i <32; i++) {
+            CheckMAC[6 + i] = ClientChal[i];
+    }
+    for (uint8_t i = 0; i <32; i++) {
+            CheckMAC[6+32+i] = ClientResp[i];
+    }
+    for (uint8_t i = 0; i <13; i++) {
+            CheckMAC[6+64+i] = OtherData[i];
     }
 
     atCRC(CheckMAC, sizeof(CheckMAC), CRC_receiv);
