@@ -393,30 +393,31 @@ void GendigCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t size, uint8_t
 	HAL_Delay(5);
 }
 
+
 void MacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint16_t size, uint8_t *receiv){
 
-	uint8_t  MAC[8];
+	uint8_t  MAC[40];
 	uint8_t CRC_receiv[2];
 
-	//uint8_t Challenge [32] = {0x00};
+	uint8_t Challenge [32] = {0x00 };
 
 	 MAC[0]= COMMAND;
-	 MAC[1]= 0x07; 	//size 0x27
+	 MAC[1]= 0x27; 	//size 0x27
 	 MAC[2]= COMMAND_MAC;
-	 MAC[3]= 0x01 ; 	//mode
+	 MAC[3]= 0x06 ; 	//mode funcional
 	 MAC[4]= SlotID_LSB;
 	 MAC[5]= SlotID_MSB;
-/*
+
 	for(uint8_t i = 0; i <= 32; i++){
 		MAC[6 + i] = Challenge[i];
 	}
-*/
+
 	atCRC(MAC, sizeof(MAC), CRC_receiv);
 	MAC[sizeof(MAC) - 2] = CRC_receiv[0] ;
 	MAC[sizeof(MAC) - 1] = CRC_receiv[1] ;
 
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, MAC, sizeof(MAC), 1000);
-	HAL_Delay(30);
+	HAL_Delay(35);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }
@@ -554,7 +555,7 @@ void ReadEncript(uint8_t *data, uint16_t size, uint8_t *receiv){
 
 	// Read Encript
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, data, 8, 1000); // Send read encript command
-	HAL_Delay(20);
+	HAL_Delay(30);
 	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, size, 1000);
 	HAL_Delay(5);
 }

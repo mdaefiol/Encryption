@@ -9,7 +9,7 @@
 ../Core/Src/ATSHA204.c:334:6:ReadDataZone	32	static
 ../Core/Src/ATSHA204.c:343:6:CommandNonce	72	static
 ../Core/Src/ATSHA204.c:371:6:GendigCommand	40	static
-../Core/Src/ATSHA204.c:396:6:MacCommand	40	static
+../Core/Src/ATSHA204.c:396:6:MacCommand	104	static
 ../Core/Src/ATSHA204.c:425:6:CheckMacCommand	176	static
 ../Core/Src/ATSHA204.c:475:6:SHACommandInit	16	static
 ../Core/Src/ATSHA204.c:490:6:SHACommandCompute	112	static
