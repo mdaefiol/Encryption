@@ -1,5 +1,8 @@
 #include "ATSHA204.h"
 
+#include <stdio.h>
+#include <string.h>
+
 extern I2C_HandleTypeDef hi2c2;
 
 // command packet: 8.5.1
@@ -84,7 +87,7 @@ void WriteConfigZone(void){
 	for (uint8_t i = 0; i < sizeof(config_2); i += 4){
 
 		configSlot[0] = COMMAND;
-		configSlot[1] = SIZE_WRITE_CONFIG;
+		configSlot[1] = ((sizeof(configSlot)-1) & 0xFF);
 		configSlot[2] = COMMAND_WRITE;
 		configSlot[3] = 0x00;
 		configSlot[4] = slot_addr + (i / 4);
@@ -95,7 +98,6 @@ void WriteConfigZone(void){
 		}
 
 		atCRC(configSlot, sizeof(configSlot), CRC_receiv);
-
 		configSlot[10] = CRC_receiv[0];
 		configSlot[11] = CRC_receiv[1];
 
@@ -105,104 +107,104 @@ void WriteConfigZone(void){
 }
 
 
-void BlockConfigZone(uint8_t *receiv){
+void BlockConfigZone(uint8_t *receiv) {
+    uint8_t SendCommand[8];
+    uint8_t BlockConfig[8];
+    uint8_t CRC_datablock[2];
+    uint8_t DataZoneConfig[91];
 
-	uint8_t SendCommand[8];
-	uint8_t BlockConfig[8];
-	uint8_t CRC_receiv[2];
-	uint8_t CRC_datablock[2];
-	uint8_t DataZoneConfig[91];
+    uint8_t DataReceive_35[35] = {0x00};
+    uint8_t DataReceive_7[7] = {0x00};
+    uint8_t size = 35;
 
+    SendCommand[0] = COMMAND;
+    SendCommand[1] = ((sizeof(SendCommand)-1) & 0xFF);
+    SendCommand[2] = 0x02;
+    SendCommand[5] = 0x00;
 
-	uint8_t DataReceive_35[35] = {0x00};
-	uint8_t DataReceive_7[7] = {0x00};
-	uint8_t adress = 0x08;
-	uint8_t size = 35;
-	uint8_t slot;
+    for (uint8_t i = 0; i < 2; i++) {
+        uint8_t slot = i * 0x08;
 
-	SendCommand[0]= COMMAND;
-	SendCommand[1]= 0x07;
-	SendCommand[2]= 0x02;
-	SendCommand[5]= 0x00;
+        SendCommand[3] = READ_WRITE_32;
+        SendCommand[4] = slot;
 
-	if (size == 35){
-		for (uint8_t i = 0; i < 2; i++){
-			slot = i*adress;
+        atCRC(SendCommand, sizeof(SendCommand), SendCommand + 6);
 
-			SendCommand[3]= READ_WRITE_32;
-			SendCommand[4]= slot;
+        ReadConfig(SendCommand, size, DataReceive_35);
 
-			atCRC(SendCommand,sizeof(SendCommand),CRC_receiv);
+        uint8_t length = i * 32;
+        for (uint8_t j = 1; j <= 32; j++) {
+            DataZoneConfig[length + j] = DataReceive_35[j];
+        }
+    }
 
-			SendCommand[6]= CRC_receiv[0];
-			SendCommand[7]= CRC_receiv[1];
+    if (size == 7) {
+        for (uint8_t x = 0; x <= 5; x++) {
+            uint8_t slot = x + 0x10;
 
-			ReadConfig(SendCommand, size, DataReceive_35);
+            SendCommand[3] = READ_WRITE_4;
+            SendCommand[4] = slot;
 
-			uint8_t length = i * 32;
-			for (uint8_t j = 1; j <= 32 ; j++){
-				DataZoneConfig[length+j] = DataReceive_35[j];
-			}
+            atCRC(SendCommand, sizeof(SendCommand), SendCommand + 6);
 
-		}
-		size = 7;
-	}
+            ReadConfig(SendCommand, size, DataReceive_7);
 
-	if(size == 7){
-		for (uint8_t x = 0; x <= 5; x++){
-			adress = 0x10;
-			slot = x + adress;
+            for (uint8_t y = 0; y <= 3; y++) {
+                uint8_t length = x * 4 + 65 + y;
+                DataZoneConfig[length] = DataReceive_7[y + 1];
+            }
+        }
+    }
 
-			SendCommand[3]= READ_WRITE_4;
-			SendCommand[4]= slot;
+    atCRC(DataZoneConfig, sizeof(DataZoneConfig), CRC_datablock);
 
-			atCRC(SendCommand,sizeof(SendCommand), CRC_receiv);
-			SendCommand[6]= CRC_receiv[0];
-			SendCommand[7]= CRC_receiv[1];
+    BlockConfig[0] = COMMAND;
+    BlockConfig[1] = ((sizeof(BlockConfig)-1) & 0xFF);
+    BlockConfig[2] = COMMAND_LOCK;
+    BlockConfig[3] = ZONE_CONFIG_LOCK;
+    BlockConfig[4] = CRC_datablock[0];
+    BlockConfig[5] = CRC_datablock[1];
 
-			ReadConfig(SendCommand, size, DataReceive_7);
+    atCRC(BlockConfig, sizeof(BlockConfig), BlockConfig + 6);
 
-			for(uint8_t y = 0; y <= 3; y++){
-				uint8_t length = (x*4) + (64+1) + y;
-				DataZoneConfig[length] = DataReceive_7[y+1];
-		 	}
-
-		 }
-	}
-
-	atCRC(DataZoneConfig,sizeof(DataZoneConfig), CRC_datablock);
-	// Lock command: {COMMAND, COUNT, OPCODE, ZONE, CRC_88_LSB,  CRC_88_MSB, CRC_LSB, CRC_MSB}
-	BlockConfig[0] = COMMAND;
-	BlockConfig[1] = SIZE_BLOCK_CONFIG;
-	BlockConfig[2] = COMMAND_LOCK;
-	BlockConfig[3] = ZONE_CONFIG_LOCK;
-
-	BlockConfig[4] = CRC_datablock[0];
-	BlockConfig[5] = CRC_datablock[1];
-
-	//uint8_t BlockConfig[] = { COMMAND, SIZE_BLOCK_CONFIG, COMMAND_LOCK, ZONE_CONFIG_LOCK, CRC_datablock[0], CRC_datablock[1],/* 0xed, 0xef*/
-	//						  /*0xc4, 0xe1*/ 0x00, 0x00};
-	atCRC(BlockConfig,sizeof(BlockConfig), CRC_receiv);
-	BlockConfig[6] = CRC_receiv[0] ;
-	BlockConfig[7] = CRC_receiv[1] ;
-
-	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, BlockConfig, sizeof(BlockConfig), 1000);
-	HAL_Delay(50);
-	HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, 4, 1000);
-	HAL_Delay(10);
+    HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, BlockConfig, sizeof(BlockConfig), 1000);
+    HAL_Delay(50);
+    HAL_I2C_Master_Receive(&hi2c2, I2C_ADDRESS, receiv, 4, 1000);
+    HAL_Delay(10);
 }
 
 
 void WriteDataZone(void){
 
+	uint8_t slot_LSB, slot_MSB  = 0x00;
+	uint8_t CRC_receiv[2];
 	// Write command: {COMMAND, COUNT, OPCODE, Param1 + Param2_LSB + Param2_MSB + DADOS + CRC_LSB + CRC_MSB}
-	uint8_t writeData0[] = {COMMAND, SIZE_WRITE_DATA, COMMAND_WRITE, 0x82, 0x00, 0x00 , 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04,
-		 	 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,  0x3a, 0x04};
+	uint8_t writeData0[40];
+	writeData0 [0] = COMMAND;
+	writeData0 [1] = ((sizeof(writeData0)-1) & 0xFF);
+	writeData0 [2] = COMMAND_WRITE;
+	writeData0 [3] = 0x82;
+	writeData0 [4] = slot_LSB;
+	writeData0 [5] = slot_MSB;
+
+	uint8_t slot_data[32] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04,
+	0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
+
+	for(uint8_t i = 0; i <= 32; i++){
+		writeData0[6 + i] = slot_data[i];
+	}
+
+	atCRC(writeData0, sizeof(writeData0), writeData0);
+	writeData0[sizeof(writeData0) - 2] = CRC_receiv[0] ;
+	writeData0[sizeof(writeData0) - 1] = CRC_receiv[1] ;
+
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, writeData0, sizeof(writeData0), 1000);
 	HAL_Delay(40);
 
-	uint8_t writeData1[] = {COMMAND, SIZE_WRITE_DATA, COMMAND_WRITE, 0x82, 0x08, 0x00 , 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x10, 0x11, 0x12, 0x13, 0x14,
-	          0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x33, 0x59};
+	uint8_t writeData1[] = {COMMAND, SIZE_WRITE_DATA, COMMAND_WRITE, 0x82, 0x08, 0x00 , 0x10, 0x11, 0x12, 0x13,
+			0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x10, 0x11, 0x12, 0x13, 0x14,
+	          0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15,
+			  0x16, 0x17, 0x18, 0x19, 0x33, 0x59};
 	HAL_I2C_Master_Transmit(&hi2c2, I2C_ADDRESS, writeData1, sizeof(writeData1), 1000);
 	HAL_Delay(40);
 
@@ -290,7 +292,7 @@ void WriteOTPZone(void){
 	for (uint8_t i = 0; i < 0x10; i++){
 
 		writeOTP[0] = COMMAND;
-		writeOTP[1] = SIZE_WRITE_OTP;
+		writeOTP[1] = ((sizeof(writeOTP)-1) & 0xFF);
 		writeOTP[2] = COMMAND_WRITE;
 		writeOTP[3] = ZONE_OTP;
 		writeOTP[4] = adress + i;
@@ -316,7 +318,7 @@ void BlockDataZone(void){
 	uint8_t blockConfig[8];
 	//{ COMMAND, SIZE_BLOCK_CONFIG, COMMAND_LOCK, ZONE_DATA_LOCK, 0x04, 0x58, /*0x66, 0xc7*/ 0x00, 0x00};
 	blockConfig [0] = COMMAND;
-	blockConfig [1] =SIZE_BLOCK_CONFIG ;
+	blockConfig [1] = ((sizeof(blockConfig)-1) & 0xFF);
 	blockConfig [2] = COMMAND_LOCK;
 	blockConfig [3] = ZONE_DATA_LOCK;
 	blockConfig [4] = 0x04;
@@ -347,7 +349,7 @@ void CommandNonce(uint8_t *NumIn, uint16_t size, uint8_t *receiv){ //OK
 	uint8_t CRC_receiv[2];
 
     noncecommand[0] = COMMAND;
-    noncecommand[1] = SIZE_WRITE_NONCE20; //SIZE_WRITE_NONCE32;
+    noncecommand[1] =  ((sizeof(noncecommand)-1) & 0xFF); //20
     noncecommand[2] = COMMAND_NONCE;
     noncecommand[3] = 0x00; // modo3
     noncecommand[4] = 0x00;
@@ -377,7 +379,7 @@ void GendigCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t size, uint8_t
 	//atCRC(GenDig,sizeof(GenDig));
 
 	GenDig[0] = COMMAND;
-	GenDig[1] = SIZE_WRITE_GENDIG;
+	GenDig[1] = ((sizeof(GenDig)-1) & 0xFF);
 	GenDig[2] = COMMAND_GENDIG;
 	GenDig[3] = ZONE_DATA;
 	GenDig[4] = SlotID_LSB;
@@ -399,10 +401,10 @@ void MacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint16_t size, uint8_t *
 	uint8_t  MAC[40];
 	uint8_t CRC_receiv[2];
 
-	uint8_t Challenge [32] = {0x00 };
+	uint8_t Challenge [32] = {0x00};
 
 	 MAC[0]= COMMAND;
-	 MAC[1]= 0x27; 	//size 0x27
+	 MAC[1]= ((sizeof(MAC)-1) & 0xFF); 	//size 0x27
 	 MAC[2]= COMMAND_MAC;
 	 MAC[3]= 0x06 ; 	//mode funcional
 	 MAC[4]= SlotID_LSB;
@@ -424,43 +426,21 @@ void MacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint16_t size, uint8_t *
 
 
 void CheckMacCommand(uint8_t SlotID_LSB, uint8_t SlotID_MSB, uint8_t *ClientResp, uint16_t size, uint8_t *receiv) {
-    uint8_t CheckMAC[85] = {0};
+    uint8_t CheckMAC[85];
     uint8_t CRC_receiv[2];
-    uint8_t size_att = 0; // Inicializado para 0
-
     uint8_t ClientChal[32] = {0x00};
-    uint8_t OtherData[13] = {0x08, 0x01, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t OtherData[13] = {0x08, 0x01, SlotID_LSB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     CheckMAC[0] = 0x03;
-    CheckMAC[1] = 0x54;
+    CheckMAC[1] = ((sizeof(CheckMAC)-1) & 0xFF);
     CheckMAC[2] = COMMAND_CHECKMAC;
     CheckMAC[3] = 0x01;    // mode
     CheckMAC[4] = SlotID_LSB;
     CheckMAC[5] = SlotID_MSB;
-/*
-    for (uint8_t i = 0; i <= 77; i++) {
-        if (i <= 32) {
-            CheckMAC[6 + i] = ClientChal[i];
-            size_att = 6 + i;
-        } else if (i > 32 && i <= 64) {
-            CheckMAC[size_att] = ClientResp[i - 32];
-            size_att++;
-        } else if (i > 63 && i <= 77) {
-            CheckMAC[size_att] = OtherData[i - 65];
-            size_att++;
-        }
-      }
- */
 
-    for (uint8_t i = 0; i <32; i++) {
-            CheckMAC[6 + i] = ClientChal[i];
-    }
-    for (uint8_t i = 0; i <32; i++) {
-            CheckMAC[6+32+i] = ClientResp[i];
-    }
-    for (uint8_t i = 0; i <13; i++) {
-            CheckMAC[6+64+i] = OtherData[i];
-    }
+    memcpy(CheckMAC+6, ClientChal, 32);
+    memcpy(CheckMAC+38, ClientResp, 32);
+    memcpy(CheckMAC+70, OtherData, 13);
 
     atCRC(CheckMAC, sizeof(CheckMAC), CRC_receiv);
     CheckMAC[sizeof(CheckMAC) - 2] = CRC_receiv[0];
@@ -495,7 +475,7 @@ void SHACommandCompute(uint8_t *data, uint8_t size, uint8_t *receiv){
 	uint8_t CRC_receiv[2];
 
 	SHA[0] = COMMAND;
-	SHA[1] = 0x47;
+	SHA[1] = ((sizeof(SHA)-1) & 0xFF);
 	SHA[2] = COMMAND_SHA;
 	SHA[3] = SHA_COMPUTE;
 	SHA[4] = 0x00;

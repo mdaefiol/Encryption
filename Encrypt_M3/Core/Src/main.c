@@ -192,12 +192,11 @@ int main(void)
 	  //SHACommandCompute(35, SHA_receiv);
 
 	 NonceSHA256Hash(randout, NumIn, tempkey);
-	 GenDigSHA256Hash(slot2, tempkey, gendig_calc);
-	 MACSHA256Hash(slot4, gendig_calc, MAC_calc);
-	 CheckMacCommand(0x04, 0x00, MAC_calc, 4, CheckMAC_receiv);
+	 GenDigSHA256Hash(slot2, 0x02, tempkey, gendig_calc);
+	 MACSHA256Hash(slot4, 0x04, gendig_calc, MAC_calc);
+	 CheckMacCommand(0x04, 0x00, MAC_calc, 4, CheckMAC_receiv); //coloca o conteudo de tempkey = slot5
 
 	  MacCommand(0x02, 0x00, 35, MAC_receiv);
-
 
 	 // CommandNonce(NumIn, 35, randout);
 	  //GendigCommand(0x02, 0x00, 4, gendig_receiv);

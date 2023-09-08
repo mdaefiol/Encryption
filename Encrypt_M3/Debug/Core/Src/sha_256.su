@@ -12,5 +12,5 @@
 ../Core/Src/sha_256.c:178:6:sha256_revert	24	static
 ../Core/Src/sha_256.c:189:6:NonceSHA256Hash	144	static
 ../Core/Src/sha_256.c:205:6:GenDigSHA256Hash	232	static
-../Core/Src/sha_256.c:233:6:MACSHA256Hash	264	static
-../Core/Src/sha_256.c:259:6:calculateSHA256Hash	144	static
+../Core/Src/sha_256.c:226:6:MACSHA256Hash	264	static
+../Core/Src/sha_256.c:252:6:calculateSHA256Hash	144	static

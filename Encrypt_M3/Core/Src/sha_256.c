@@ -202,20 +202,14 @@ void NonceSHA256Hash(uint8_t *data, uint8_t *NumIn, uint8_t *aux) {
 	 calculateSHA256Hash(nonce, sizeof(nonce), aux);
 }
 
-void GenDigSHA256Hash(uint8_t *slot , uint8_t *data, uint8_t *aux) {
+void GenDigSHA256Hash(uint8_t *slot , uint8_t  *slot_LSB,uint8_t *data, uint8_t *aux) {
 
 	uint8_t gendig[128];
 	uint8_t aux_gen[32];
-	uint8_t config_gendig[32] = {	0x15, 0x02, /**/0x02, 0x00, 0xEE, 0x01, 0x23, 0x00,
+	uint8_t config_gendig[32] = {	0x15, 0x02, /**/slot_LSB, 0x00, 0xEE, 0x01, 0x23, 0x00,
     													0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 														0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 														0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	 /*
-	uint8_t config_gendig[32] = {	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-														0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-														0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-														0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	 */
 
     memcpy(gendig, slot, 32);
     memcpy(gendig + 32, config_gendig, 32);
@@ -229,12 +223,11 @@ void GenDigSHA256Hash(uint8_t *slot , uint8_t *data, uint8_t *aux) {
 
 }
 
-
-void MACSHA256Hash(uint8_t *slot ,uint8_t *data, uint8_t *aux){
+void MACSHA256Hash(uint8_t *slot , uint8_t  *slot_LSB, uint8_t *data, uint8_t *aux){
 
 	uint8_t mac[128];
 	uint8_t aux_mac[32];
-	uint8_t config_mac[32] = {	0x08, 0x01, /**/0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
+	uint8_t config_mac[32] = {	0x08, 0x01, /**/slot_LSB, 0x00, 0x00, 0x00, 0x00, 0x00,
 													0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xEE,
 													0x00, 0x00, 0x00, 0x00, 0x01, 0x23, 0x00, 0x00,
 													0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -248,13 +241,13 @@ void MACSHA256Hash(uint8_t *slot ,uint8_t *data, uint8_t *aux){
     for (int i = 0; i<32;i++){
     	aux_mac[i] =data[i];
     }
+
     memcpy(mac + 32, aux_mac,  sizeof(aux_mac));
     memcpy(mac + 64, config_mac,  sizeof(config_mac));
     memcpy(mac + 96, mac_pad, sizeof(mac_pad));
 
     calculateSHA256Hash(mac, sizeof(mac), aux);
 }
-
 
 void calculateSHA256Hash(uint8_t *data, uint8_t dataSize, uint8_t *aux) {
     SHA256 sha;
@@ -266,8 +259,4 @@ void calculateSHA256Hash(uint8_t *data, uint8_t dataSize, uint8_t *aux) {
     for (int i =0; i<32;i++){
     	aux[i] = digest[i];
     }
-
-    //free(digest);
 }
-
-

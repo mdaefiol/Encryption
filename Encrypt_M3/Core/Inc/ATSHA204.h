@@ -19,14 +19,6 @@
 
 // Geral
 #define COMMAND 				0x03
-#define SIZE_WRITE_GERAL		0x07
-#define SIZE_WRITE_DATA			0x27
-#define SIZE_WRITE_OTP			0x0A
-#define SIZE_WRITE_CONFIG		0x0B
-#define SIZE_BLOCK_CONFIG		0x07
-#define SIZE_WRITE_NONCE20		0x1B
-#define SIZE_WRITE_NONCE32		0x27
-#define SIZE_WRITE_GENDIG		0x07
 #define ZONE_CONFIG_LOCK 		0x00
 #define ZONE_DATA_LOCK 			0x81
 #define ZONE_DATA_READ         	0x82
