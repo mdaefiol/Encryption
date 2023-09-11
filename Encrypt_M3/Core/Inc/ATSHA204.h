@@ -69,7 +69,7 @@ void WakeUp(uint8_t *receiv);
 void ReadConfig(uint8_t *data, uint16_t size, uint8_t *receiv) ;
 void WriteConfigZone(void);
 void BlockConfigZone(uint8_t *receiv);
-void WriteDataZone(void);
+void WriteDataZone(uint8_t *slot_LSB, uint8_t *data);
 void WriteOTPZone(void);
 void BlockDataZone(void);
 void ReadDataZone(uint8_t *data, uint16_t size, uint8_t *receiv);
